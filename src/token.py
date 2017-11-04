@@ -1,4 +1,4 @@
-'''This is the class description for the "Token" class'''
+List of'''This is the class description for the "Token" class'''
 
 class Token:
 

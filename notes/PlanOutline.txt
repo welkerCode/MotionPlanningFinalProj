@@ -1,0 +1,93 @@
+Agent
+-task: holds the task assigned to the agent.  If task is "None", then the agent is not busy
+-currentState: holds the state the agent is in with regards to position
+-token: holds the token object if it currently holds it.  Otherwise it is "None".
+
+-A function to request the token (called if not busy)
+-A function to pass the token to the next agent if it is done with planning
+-A function that calls the AStar Planner.  Must pass in token in order to get a valid plan.
+-A function to update the agent's current position upon moving at a timestep
+-
+
+#############################################################################
+Token
+
+-List of Agent Paths
+	Should be in a table form with x being the timestep and y the location
+	Holds one for each agent
+	If agent is waiting, then they will simply have the same state throughout the chart
+	The table extends as far as it takes for the last agent to reach the final goal location.
+	My thought is to make the table a dictionary of parallel lists where the key is the id of the agent, and each list will hold the planned position of a specified agent at each time step ahead of where it is now:
+		e.g. 
+		agent1Plan = [(0,0),(1,0),(2,0),(3,0)...]
+		agent2Plan = [(0,1),(0,2),(0,3),(0,4)...]
+		currentTimestep = n
+		*index 0 of plans = n + delta.
+		*index 1 of plans = n + 2*delta.
+		*etc...	
+
+-CurrentTimestep object: Keeps track of which timestep we are on
+-Delta: time in between each timestep (probably just 1, so this may not be necessary).
+-A set of Task Objects
+	The agents can pull from the list of Task Objects if they are not already assigned.  
+	The time step will not end until each passive agent is visited.
+	
+
+-A function to increase the timestep by delta
+-A function to update its table of plans
+	Given a new plan from an agent, replace the old one
+-A function to retrieve a specified agent's plan
+-A function to give the length of the table (in regards to planned timesteps)
+
+
+#############################################################################
+Task Object
+-Pickup Location
+-Dropoff Location
+-Time Requirement? - If we want to add priority to packages with time
+-Status: assigned to an agent or not
+-Progress: moving towards Pickup or moving towards Dropoff
+
+-Functions to get and set these variables
+-A function to compare a given location to the pickup location (return bool)
+-A function to compare a given location to the dropoff location (return bool)
+-Function to calculate a heuristic given a particular location? (given a position, estimate the number of steps required to reach the pickup/dropoff location associated with this task).
+#############################################################################
+Environment
+
+
+#############################################################################
+Planning Algorithm
+-The algorithm will need:
+	The token
+		List of plans
+	The agent
+		Current Location of agent
+		The task of the agent
+			Pickup Location
+			Dropoff Location
+			Progress of the task (moving towards pickup or dropoff)
+	The environment
+		*The planning algorithm might even be a member of the environment class
+		Info on obstacles
+		List of "endpoints"
+
+	Priority is given to previous plans, see the ReservationTable agorithm in WHCA*.pdf
+	With a new plan, if the planning agent happens to land on the same state at the same timestep as another agent, or, if they land on adjacent states, and swap places within a single timestep,
+we call a collision on that plan, and back up.
+	Because we use a priority queue to help organize our path, we will need to just pop of the next step of the priority queue and try from there.
+	Quick question though: how do we determine whether or not an agent should wait at its spot?  Perhaps it can only wait in an endpoint that is not being used by another agent.  
+	We need to define endpoints solidly (using lifelong_MAPF.pdf:
+		-All initial locations of agents
+		-All pickup and delivery locations of tasks
+		-Additional parking locations
+
+	Therefore, endpoints need to be assigned to each environment
+	Pickup and delivery can only happen on endpoints.  Endpoints must be in locations that cannot block paths.  
+	There must be more endpoints than there are agents
+	Note: if the number of endpoints determines the number of agents, and the number of endpoints is dependant on the size and shape of the environment, then the size and shape of the environment will be a real, limiting factor on how many agents can operate in it at any time...kind of obvious I guess, but it is something good to keep in mind.
+		
+
+	
+
+		

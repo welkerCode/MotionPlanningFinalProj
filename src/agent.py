@@ -33,7 +33,7 @@ class Agent:
 
         return None
 
-    def requestToke(self):
+    def requestToken(self):
         # Do something
 
     def receiveToken(self, newToken):
