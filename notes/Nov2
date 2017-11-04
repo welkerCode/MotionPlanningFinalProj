@@ -1,0 +1,10 @@
+'''
+Randomly generate packages every few time steps, or at random times, on an average ... probably done by the environment
+Set pickup, but not dropoff locations
+wait action
+What if an agent requires
+1. More non-task end points than agents
+If two agents require same endpoint, 
+    If one is not busy, must move to nearest endpoint
+
+2. For any two endpoints, there is a path between them that doesn't have to go through an endpoint to reach them. 
