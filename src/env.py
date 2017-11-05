@@ -8,21 +8,41 @@ import numpy as np
 import heapq
 from math import hypot, fabs
 
+"""
+File: env.py
+Author: Cade Parkison
+Email: cadeparkison@gmail.com
+Github: c-park
+Description:  Environment class GridMap to read in map text files, and animate
+              motions of a multi-agent pickup and delivery system
+
+    map_files: text file representing static map before agents are added or
+               tasks are assigned
+        - x: occupied grid
+        - 0: unoccupied grid
+        - e: task endpoint, can be either pickup or delivery location
+
+    TODO:
+        - add dynamic grid and axis ticks for any sized map, not just warehouse
+        - add conditional to animate() for a "wait" action, could be represented
+        as a 0 for the state.
+        - add indicators for task start and end locations, while being able to
+        remove once a task is complete
+        - add more robust color scheme for more than 7 unique colors.
+        - add a way to visualize entire paths in static image
+"""
+
 _DEBUG = False
-_DEBUG_END = True
 _GOAL_COLOR = 0.45
 _INIT_COLOR = 0.25
-_ROBOT_COLOR = 0.75
-#_PICKUP_COLOR = 0.65
 _ENDPOINT_COLOR = 0.4
-
 _COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 
 class GridMap:
     def __init__(self, map_path=None, use_cost=False):
         '''
-        Constructor. Makes the necessary class variables. Optionally reads in a provided map
-        file given by map_path.
+        Constructor. Makes the necessary class variables. Optionally reads in a
+        provided map file given by map_path.
 
         map_path (optional) - a string of the path to the file on disk
         '''
@@ -30,7 +50,7 @@ class GridMap:
         self.cols = None
         self.endpoints = []
         self.tasks = []        # tuples containing pickup and delivery locations
-        self.init_agents = []  # agent initial positions (i.e. non-task endpoints)
+        self.init_agents = []  # agent initial positions (non-task endpoints)
         self.occupancy_grid = None
         self.use_costs = use_cost
         if map_path is not None:
@@ -67,9 +87,11 @@ class GridMap:
 
     def display_map(self, paths=[]):
         '''
-        Visualize the map read in. Optionally display the resulting plans for all agents
+        Visualize the map read in. Optionally display the resulting plans for
+        all agents
 
-        paths - an array describing paths taken by all agents, where each element is a tuple of 2d position.
+        paths - an array describing paths taken by all agents, where each
+                element is a tuple of 2d position.
                 - columns: time steps
                 - rows: agents
         '''
@@ -88,7 +110,8 @@ class GridMap:
         # create circles to represent each agent in starting position
         agents = []
         for i, path in enumerate(paths):
-            agents.append(mpl.patches.Circle(path[0], 0.5, color=_COLORS[i%len(_COLORS)]))
+            agents.append(mpl.patches.Circle(path[0], 0.5,
+                                             color=_COLORS[i%len(_COLORS)]))
 
         # Animate paths of agents
         def init():
@@ -106,11 +129,11 @@ class GridMap:
             return agents
 
         anim = animation.FuncAnimation(fig, animate,
-                           init_func=init,
-                           frames=10,
-                           interval=1000,
-                           repeat=False,
-                           blit=True)
+                                        init_func=init,
+                                        frames=10,
+                                        interval=1000,
+                                        repeat=False,
+                                        blit=True)
 
         ax.set_yticks(np.arange(0,20,5))
         ax.set_xticks(np.arange(-.5, 35, 1), minor=True);
