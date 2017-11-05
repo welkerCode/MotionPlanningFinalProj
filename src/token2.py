@@ -1,10 +1,12 @@
-List of'''This is the class description for the "Token" class'''
+'''This is the class description for the "Token" class'''
 
 class Token:
 
-    timestep
-    listOfPlans
-    listOfAgents    # Might not be necessary?
+    def __init__(self):
+
+        self.timestep = None
+        self.listOfPlans = None
+        self.listOfAgents = None   # Might not be necessary?
 
     def getPlan(self, agent, listOfAgents, pickupLoc, dropoffLoc):
         '''
@@ -27,7 +29,7 @@ class Token:
 
 
     '''
-    Subroutine to perform an AStar (variant) seach 
+    Subroutine to perform an AStar (variant) seach
     Update timesteps after agents no longer request token
     Every free agent wants to "request" the task
     Every time step involves checking requests for each agent making them. (if no more tasks, this is quick)

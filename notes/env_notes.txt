@@ -1,0 +1,16 @@
+env.py functionality:
+
+- Basic animation of agent paths with simplified version of Paul's code
+
+- when ran from command line, displays test animations on Warehouse
+  environment.
+
+- GridMap class creates maps based of text file of endpoints (e) and occupied grids (x)
+- when GridMap.display_map() is passed a list of agent paths, it animates
+  the movements of all agents.
+
+
+TODO:
+
+- Add seperate indicators for pickup and delivery locations
+- Change coloring scheme to allow more than 7 different colors
