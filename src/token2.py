@@ -4,9 +4,9 @@ class Token:
 
     def __init__(self):
 
-        self.timestep = None
-        self.listOfPlans = None
-        self.listOfAgents = None   # Might not be necessary?
+        self.timestep
+        self.listOfPlans
+        self.listOfAgents   # Might not be necessary?
 
     def getPlan(self, agent, listOfAgents, pickupLoc, dropoffLoc):
         '''
