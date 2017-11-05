@@ -1,0 +1,8 @@
+Here are various implementaions of A*-type alogorithms:
+
+1) WHCA* (David Silver's "Cooperative Pathfinding")
+	- C++: https://github.com/yge58/collaborative_a_star_pathfinding
+	- Java: http://aptalkarga.com/jkilavuz/whca/
+	- Objective-C:  https://github.com/pokeb/asi-path-finder
+
+
