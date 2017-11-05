@@ -24,8 +24,6 @@ Description:  Environment class GridMap to read in map text files, and animate
 
     TODO:
         - add dynamic grid and axis ticks for any sized map, not just warehouse
-        - add conditional to animate() for a "wait" action, could be represented
-        as a 0 for the state.
         - add indicators for task start and end locations, while being able to
         remove once a task is complete
         - add more robust color scheme for more than 7 unique colors.
@@ -64,8 +62,8 @@ class GridMap:
 
         txt file consists of a grid system specified as follows:
             x - Cell occupied in grid by an obstacle
+            0 - Cell unoccupied
             e - task endpoints (possible pickup or delivery locations)
-            i - initial locations of agents (i.e. non-task endpoints)
 
         '''
         map_file = file(map_path,'r')
@@ -90,10 +88,10 @@ class GridMap:
         Visualize the map read in. Optionally display the resulting plans for
         all agents
 
-        paths - an array describing paths taken by all agents, where each
-                element is a tuple of 2d position.
-                - columns: time steps
-                - rows: agents
+        paths - A matrix describing paths taken by all agents. Rows correspond
+                to agents, columns correspond to time steps.
+                Each matrix element is a tuple of 2d position or a "0" if the
+                agent is waiting for that timestep.
         '''
         fig, ax = plt.subplots()
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)
@@ -113,25 +111,37 @@ class GridMap:
             agents.append(mpl.patches.Circle(path[0], 0.5,
                                              color=_COLORS[i%len(_COLORS)]))
 
-        # Animate paths of agents
         def init():
+            """
+            Initializes agents to starting position
+            """
             for a in range(len(agents)):
                 ax.add_patch(agents[a])
             return agents
 
         def animate(i):
+            """
+            Iterate agent position by time step. Location of 0 means agent is
+            waiting.
+            """
             for a in range(len(agents)):
+                # If not at end of path, move agent to next position.
                 try:
-                    agents[a].center = paths[a][i]
+                    # if location is not 0, try to move forward.
+                    if paths[a][i]:
+                        agents[a].center = paths[a][i]
+                    else:
+                        pass
                 except IndexError:
+                    # if at end of path, agent stays.
                     agents[a].center = paths[a][-1]
 
             return agents
 
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
-                                        frames=10,
-                                        interval=1000,
+                                        frames=10,        # animation frames
+                                        interval=1000,    # time between frames (ms)
                                         repeat=False,
                                         blit=True)
 
@@ -143,10 +153,12 @@ class GridMap:
         plt.show()
 
 def main():
-    test_paths = [[(1,1),(1,2),(2,2),(3,2)],
-                  [(5,1),(5,2),(5,3),(5,4),(5,5)],
+    # test path of 4 agents, the zeros represent an agent waiting one time step
+    test_paths = [[(1,1),0,0,0,0,(1,2),(2,2),(3,2)],
+                  [(5,1),(5,2),0,(5,3),(5,4),(5,5)],
                   [(1,5),(1,6),(1,7),(1,8),(1,9)],
-                  [(2,7),(3,7),(3,8),(3,9),(3,10)]]
+                  [(2,7),(3,7),(3,8),(3,9),0,(3,10)]]
+
     test = GridMap('env_files/env_warehouse.txt')
     test.display_map(paths=test_paths)
 
