@@ -4,79 +4,53 @@ class Agent:
 
     '''
     These are the class members
+    Agent
+    -task: holds the task assigned to the agent.  If task is "None", then the agent is not busy
+    -currentState: holds the state the agent is in with regards to position
+
+    -A function to request the token (called if not busy)
+    -A function to pass the token to the next agent if it is done with planning
+    -A function that calls the AStar Planner.  Must pass in token in order to get a valid plan.
+    -A function to update the agent's current position upon moving at a timestep
+    -
+
     '''
-    token           # This will hold the token if the agent has it.  Otherwise, it will hold "None"
-    busy            # This will act as a boolean to declare whether or not the agent has a job already
-    path            # This should be a list of actions + states that define the path that the agent will take
     currentState    # This will hold the current State (position + timeStep) that the agent is in
-    task
+    task            # This will hold the task assigned to the agent, if None, then the agent isn't busy.
+    planner         # This will hold the planning algorithm instantiation used to find the path
 
 
     def __init__(self, initState = (0,0,0)):
-        token = None
-        busy = False
+        planner = PathPlanner();
         path = []
         currentState = initState
 
-    # This function is used to pass the token to a new agent
-    def passToken(self):
-        '''
-
-        :return:
-
-        Proposed Actions
-        1. Get the list of agents
-        2. Give token to the next agent in the list
-        3. Remove token from class members in this agent
-
-        '''
-
-        return None
-
     def requestToken(self):
-        # Do something
+        # Put out a request for the token
 
-    def receiveToken(self, newToken):
-        '''
 
-        :return:
+        # Once the token has been received
+        self.planPath()
 
-        Proposed Action
-        1. If this method is called, then we need to
-        '''
+    # This is the function that will be used to plan a path for this agent
+    def planPath(self):
+        self.planner.hcaa_search(self.task.getPickup, task.getDropoff, task.status, currentState)
 
-    # This is the function that will be used to find a path for this agent
-    def choosePath(self):
-        '''
-
-        :return: Probably should return a new Path variable that can go in the "path" member of this class
-
-        Proposed Actions
-        1. Call the token's method to get a path?
-
-        '''
-        return None
+    # This is the function that will be used to get the path planned by the planner
+    def getPlan(self):
+        return self.planner.getPlan()
 
     # This function will help move the agent
     def moveAgent(self, action):
-        '''
+        if action == 'u':
+            self.currentState[1] = self.currentState[1] - 1
+        elif action == 'd':
+            self.currentState[1] = self.currentState[1] + 1
+        elif action == 'l':
+            self.currentState[0] = self.currentState[0] - 1
+        elif action == 'r':
+            self.currentState[0] = self.currentState[0] + 1
+        else:
+            return False    # If we have reached here, then return False
 
-        :param action: this is determined by the path, and is used to calculate the new state
-        :return: Not sure if we should return anything...maybe a boolean to signal whether or not we were successful?
-
-        Proposed Actions
-        1. Use action to calculate new state
-        2. Check if in collision?
-        3. Update currentState variable
-        4. Update path?
-        5. Return boolean signaling success?
-        '''
-
-
-        return None
-
-
-'''
-Agent passes token to path-planning algorithm (acts as a key, and holds other paths for collision checking).
-
-'''
+        return True         # If nothing went wrong, return True
