@@ -27,17 +27,23 @@ class Agent:
     path            # True movement of the agent, goes into the animator
 
     def __init__(self, initState = (0,0,0)):
-        planner = PathPlanner();
-        path = []
-        currentState = initState
+        self.plan = []
+        self.path = []
+        self.trueHeur = {}
+        self.currentState = initState
+
+        self.revFrontier = None
+        self.revVisited = None
+
+        self.task = None
 
     # This is the function that will be used to plan a path for this agent
     def planPath(self):
-        whca_search(self.task, self.frontier, self.visited, self.currentState)
+        self.plan = whca_search(self.task, self.frontier, self.visited, self.currentState)
 
     # This is the function that will be used to get the path planned by the planner
     def getPlan(self):
-        return self.planner.getPlan()
+        return self.plan
 
     # This function will help move the agent
     def moveAgent(self, action):
@@ -49,16 +55,17 @@ class Agent:
             self.currentState[0] = self.currentState[0] - 1
         elif action == 'r':
             self.currentState[0] = self.currentState[0] + 1
-
-            '''Include WAIT'''
+        elif action == 'w':
+            self.currentState = self.currentState # No change, this step is trivial
         else:
             return False    # If we have reached here, then return False
 
         return True         # If nothing went wrong, return True
 
     # This is an alternative move function that simply updates the state
-    def updateCurrentState(self, newState):
-        self.currentState = newState
+    def updateCurrentState(self):
+        self.path.append(self.currentState)
+        self.currentState = self.plan.pop(0)
         return True
 
     # Function to return whether the agent is done
