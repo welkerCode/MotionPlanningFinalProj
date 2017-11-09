@@ -1,0 +1,46 @@
+Forward Search
+Purpose: Find path from agent's current position to the goal position.  Requires a true-distance heuristic provided by the backwards search
+forward_search(initState(3tuple), tr, goal_function, action, h)
+	'''
+	h - heuristicFunction/backwards_search
+	tr - transitionFunction (just lateral movement)
+	goal_function - used to check to see if the specified state is equivalent with a goal state
+	action - list of all possible actions that the agent can take
+	'''
+	frontier = PriorityQ()
+	frontier.push(init_state,initcost)
+	visited = []
+	while frontier is not empty:
+		s = frontier.pop()
+		if s in visited and g(s) > visited[s]:
+			continue
+		if is_goal(s):
+			return get_plan(s)
+		visited[s] = g(s)
+		for a in actions:
+			s_prime = tr(s,a)
+			f(s_prime) = g(s_prime) + h(s_prime)
+			if (s_prime in visited and visited[s_prime] > g(sprime)) or
+			   (s_prime not in visited and s_prime not in frontier):
+				frontier.push(s_prime, f(s_prime))
+			elif s_prime in frontier and f(s_prime) < frontier.get_cost(s_prime):
+				frontier.replace(s_prime, f(s_prime))
+	return None
+
+Backwards Search
+Purpose: Yields heuristic for the forward search.  It is called whenever the forward search requires the heuristic for its A* search
+Catches: Stays in 2D sphere, ignores other agents, but minds constant obstacles.
+Pseudocode:
+class?
+backwards_search(desiredHeur):
+	# The value to be returned is the "true distance" from the state to the goal.
+	if(desiredHeur is in the visited list):
+		return (desiredHeur, value)
+	else:
+		while(desiredHeur is not in the visited list):
+			# run a search with increasing depth to find desiredHeur's position
+			visitedList = forward_search(initState?, tr, goal_function, action, manhattan_heur)
+		return (desiredHeur, value)
+
+	visitedList
+	frontier
