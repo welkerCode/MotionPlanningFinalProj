@@ -6,12 +6,22 @@ class Task:
     pickupState     # This holds the state at which the pickup must occur
     dropoffState    # This holds the state at which the dropoff must occur
     taskStatus      # This holds the status of the task
+    taskId
+    timer           # This holds the number of time steps used to complete thus far
+
+    '''
+    There needs to be a task report class/table that holds the data associated with each task:
+    -Time steps to acheive
+    -Path
+    -Agent that completed it
+    
+    '''
 
     # Initialization function
-    def __init__(self, newPickupState=None, newDropoffState=None):
+    def __init__(self, newPickupState=None, newDropoffState=None, newTaskStatus = "dropoff"):
         self.pickupState = newPickupState
         self.dropoffState = newDropoffState
-        self.taskStatus = "pickup"
+        self.taskStatus = newTaskStatus
 
     # Return the state holding the pickup location
     def getPickup(self):

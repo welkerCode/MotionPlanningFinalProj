@@ -17,24 +17,23 @@ class Agent:
     '''
     currentState    # This will hold the current State (position + timeStep) that the agent is in
     task            # This will hold the task assigned to the agent, if None, then the agent isn't busy.
-    planner         # This will hold the planning algorithm instantiation used to find the path
 
+    # Allows us to pause the reverse search
+    revFrontier     # queue of nodes
+    revVisited      # list of nodes
+
+    trueHeur        # dictionary of nodes (key) and their true heuristic (cost/int) to the goal
+    plan            # Future movement, updated by the planning algorithm
+    path            # True movement of the agent, goes into the animator
 
     def __init__(self, initState = (0,0,0)):
         planner = PathPlanner();
         path = []
         currentState = initState
 
-    def requestToken(self):
-        # Put out a request for the token
-
-
-        # Once the token has been received
-        self.planPath()
-
     # This is the function that will be used to plan a path for this agent
     def planPath(self):
-        self.planner.hcaa_search(self.task.getPickup, task.getDropoff, task.status, currentState)
+        whca_search(self.task, self.frontier, self.visited, self.currentState)
 
     # This is the function that will be used to get the path planned by the planner
     def getPlan(self):
@@ -50,7 +49,16 @@ class Agent:
             self.currentState[0] = self.currentState[0] - 1
         elif action == 'r':
             self.currentState[0] = self.currentState[0] + 1
+
+            '''Include WAIT'''
         else:
             return False    # If we have reached here, then return False
 
         return True         # If nothing went wrong, return True
+
+    # This is an alternative move function that simply updates the state
+    def updateCurrentState(self, newState):
+        self.currentState = newState
+        return True
+
+    # Function to return whether the agent is done
