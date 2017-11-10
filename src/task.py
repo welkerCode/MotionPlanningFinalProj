@@ -1,43 +1,26 @@
 class Task:
-    
-    # Class variables
-    # State: (x_loc, y_loc)
 
-    pickupState     # This holds the state at which the pickup must occur
-    dropoffState    # This holds the state at which the dropoff must occur
-    taskStatus      # This holds the status of the task
-    taskId
-    timer           # This holds the number of time steps used to complete thus far
+    ###############################################
+    ############# Class Variables #################
+    ###############################################
 
-    '''
-    There needs to be a task report class/table that holds the data associated with each task:
-    -Time steps to acheive
-    -Path
-    -Agent that completed it
-    
-    '''
+    taskId          # This is a unique identifier that differentiates this task from the others (int value)
+    pickupState     # This holds the state at which the pickup must occur (2D)
+    dropoffState    # This holds the state at which the dropoff must occur (2D)
+    taskStatus      # This holds the status of the task (one of 3 strings: 'pickup', 'dropoff', 'complete')
+    timer           # This holds the number of time steps used to complete the task thus far (int value)
+
+    ###############################################
+    ############# Class Functions #################
+    ###############################################
 
     # Initialization function
-    def __init__(self, newPickupState=None, newDropoffState=None, newTaskStatus = "dropoff"):
-        self.pickupState = newPickupState
-        self.dropoffState = newDropoffState
-        self.taskStatus = newTaskStatus
-
-    # Return the state holding the pickup location
-    def getPickup(self):
-        return self.pickupState
-
-    # Set the pickup location
-    def setPickup(self, newPickupState):
-        self.pickupState = newPickupState
-
-    # Return the state holding the dropoff location
-    def getDropoff(self):
-        return self.dropoffState
-
-    # Set the dropoff location
-    def setDropoff(self, newDropoffState):
-        self.dropoffState = newDropoffState
+    def __init__(self, newId, newPickupState=None, newDropoffState=None, newTaskStatus = "dropoff"):
+        self.taskId = newId                 # Get the id of the task
+        self.pickupState = newPickupState   # Get the pickup location
+        self.dropoffState = newDropoffState # Get the dropoff location
+        self.taskStatus = newTaskStatus     # Get the predefined status of the task (start at dropoff if agent is already at pickup location)
+        self.timer = 0                      # Start the timer
 
     # This function progresses the status of the task by one step
     def progressStatus(self):
@@ -48,6 +31,31 @@ class Task:
         else:
             self.taskStatus = "error"
 
-    # This function returns the status of the task
+    # This function updates the timer
+    def tickTimer(self):
+        self.timer = self.timer + 1
+
+    ###############################################
+    ############# Getters and Setters #############
+    ###############################################
+
+    def getTimer(self):
+        return self.timer
     def getTaskStatus(self):
         return self.taskStatus
+    def getPickup(self):
+        return self.pickupState
+    def setPickup(self, newPickupState):
+        self.pickupState = newPickupState
+    def getDropoff(self):
+        return self.dropoffState
+    def setDropoff(self, newDropoffState):
+        self.dropoffState = newDropoffState
+
+    '''
+    There needs to be a task report class/table that holds the data associated with each task:
+    -Time steps to acheive
+    -Path
+    -Agent that completed it
+
+    '''
