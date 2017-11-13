@@ -1,4 +1,5 @@
 from transition import transition
+from node import SearchNode
 
 _ACTIONS = ['u','d','l','r']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se']
@@ -61,7 +62,7 @@ def whca_search(map, currentState, task, revVisited, revFrontier, trueHeur):
             if(trueHeur.has_key(s_prime)):
                 h = trueHeur.get(s_prime)
             else:
-                whca_reverse(f, s_prime, actions, map.manhattan_heuristic, revFrontier, revVisited, trueHeur)
+                whca_reverse(f, dropoffState, actions, map.manhattan_heuristic, revFrontier, revVisited, trueHeur)
                 h = trueHeur.get(s_prime)
 
             # Add the heuristic for the combined cost-spent and cost-to-go
