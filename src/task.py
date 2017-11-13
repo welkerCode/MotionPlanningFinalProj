@@ -22,6 +22,10 @@ class Task:
         self.taskStatus = newTaskStatus     # Get the predefined status of the task (start at dropoff if agent is already at pickup location)
         self.timer = 0                      # Start the timer
 
+        '''
+        Add code for trueHeur
+        '''
+
     # This function progresses the status of the task by one step
     def progressStatus(self):
         if self.taskStatus == "pickup":
@@ -58,4 +62,12 @@ class Task:
     -Path
     -Agent that completed it
 
+    '''
+
+    '''
+    Every time a new task initializes, run the whca_reverse search to find the true heuristic for every node in the map
+        given the new dropoff location
+    This dictionary of true heurisitcs will be stored as a member of the task class and will be accessed by the whca_search algorithm
+    Our reasons for doing this is to eliminate the need for a paused reverse search and to find the true heuristic of each node upfront.
+    This means that the forward whca search will never call the reverse search directly.  Instead, every possible heuristic will already be calculated and stored in the task passed to it.
     '''

@@ -13,7 +13,7 @@ class Reserv_Table:
         for i in range(0, env_x, 1):            # For all of the x's in the environment
             d = {}                              # Create a second dictionary for each y
             for j in range(0, env_y, 1):        # For all of the y's in the environment
-                d[j] = {0 : occupancyGrid[2]}              # Fill the second dictionary with the third dictionary (1 = obstacle)
+                d[j] = {0 : occupancyGrid[2]}   # Fill the second dictionary with the third dictionary (1 = obstacle)
             self.res_table[i] = d               # Tie three dictionaries together
 
 
@@ -21,3 +21,15 @@ class Reserv_Table:
     # Simply prints the table.  Might be good to format for easy debugging?
     def showTable(self):
         print(self.res_table)
+
+
+
+
+'''
+List of static obstacle locations
+occupancy grid during initialization makes the list above
+every new timestep requires going through the obstacle location list and adding reservations very first thing.
+if a reservation is made, it will exist in the dictionary.  To check if a state has been reserved, simply search the dictionary using the state as a key.  If it exists already, then the state has been reserved, otherwise it must be open, and can be reserved
+Transition function may be an element of this class.  The transition function checks the reservation table to make sure no collisions occur using the method above
+
+'''

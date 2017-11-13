@@ -44,7 +44,7 @@ def whca_search(map, currentState, task, revVisited, revFrontier, trueHeur):
         if n_i.state in visited:
             if visited[n_i.state] < n_i.cost:
                 continue
-        if n_i[_X] == dropoffState[_X] and n_i[_Y] == dropoffState[_Y]:
+        if n_i.state[_X] == dropoffState[_X] and n_i.state[_Y] == dropoffState[_Y]:
             if _DEBUG_END:
                 print 'goal found at', n_i.state
                 print 'goal cost is', n_i.cost
@@ -143,3 +143,8 @@ def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict
     if _DEBUG_END:
         print 'No goal found'
     return None
+
+'''
+keep the original tranistion function for the reverse search.  Make it a member of the task class?
+
+'''
