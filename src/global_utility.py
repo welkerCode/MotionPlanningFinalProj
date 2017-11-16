@@ -52,7 +52,7 @@ def backpath(node):
     return path
 
 
-def bfs_search_map(init_state, f, actions, res_table):
+def bfs_search_map(init_state, f, actions):
     '''
     Perform breadth first search on a grid map.
 

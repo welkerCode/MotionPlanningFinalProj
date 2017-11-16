@@ -3,8 +3,8 @@ from priorityq import PriorityQ
 from global_utility import backpath
 _ACTIONS = ['u','d','l','r','pause']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
-_X = 1
-_Y = 0
+_COL = 1
+_ROW = 0
 _DEBUG = False
 _DEBUG_END = False
 
@@ -48,7 +48,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
         if n_i.state in visited:
             if visited[n_i.state] < n_i.cost:
                 continue
-        if n_i.state[_X] == dropoffState[_X] and n_i.state[_Y] == dropoffState[_Y]:
+        if n_i.state[_ROW] == dropoffState[_ROW] and n_i.state[_COL] == dropoffState[_COL]:
             if _DEBUG_END:
                 print 'goal found at', n_i.state
                 print 'goal cost is', n_i.cost
@@ -61,7 +61,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
             print 'visited =', visited
             print 'frontier =', str(frontier)
         for a in n_i.actions:
-            (s_prime) = f((n_i.state[0],n_i.state[1], currentTime), a)
+            (s_prime) = f((n_i.state[_ROW],n_i.state[_COL], currentTime), a)
             cost_spent = n_i.cost + action_cost # g(s_prime)
             n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
             h = trueHeur.get(s_prime)
@@ -130,7 +130,7 @@ def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict
                 frontier.replace(n_prime, new_cost)
 
         # Check for the goal
-        if n_i[_X] == desiredLocation[_X] and n_i[_Y] == desiredLocation[_Y]:
+        if n_i[_COL] == desiredLocation[_COL] and n_i[_ROW] == desiredLocation[_ROW]:
             if _DEBUG_END:
                 print 'true_heuristic found at', n_i.state
                 print 'true_heuristic is', n_i.cost

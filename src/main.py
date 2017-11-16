@@ -58,10 +58,18 @@ global_timestep = 0
 TaskIDGen = 0
 
 ### INITIALIZATION ###
+agent0Start = env.endpoints[0]
+agent1Start = env.endpoints[1]
+print("agent0Start: ",agent0Start)
+print("agent1Start: ",agent1Start)
 agent0 = Agent(env.endpoints[0])
 agent1 = Agent(env.endpoints[1])
 dropoff0 = env.endpoints[-1]
 dropoff1 = env.endpoints[-2]
+print('dropoff0: ', dropoff0)
+print('dropoff1: ', dropoff1)
+dropoff0_new = (dropoff0[1],dropoff0[0])
+dropoff1_new = (dropoff1[1],dropoff1[0])
 task0 = Task(0, agent0.currentState, dropoff0, "dropoff", reserv_table)
 task1 = Task(1, agent1.currentState, dropoff1, "dropoff", reserv_table)
 

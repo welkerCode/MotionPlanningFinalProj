@@ -34,7 +34,7 @@ class Task:
         Add code for trueHeur pickup
         '''
 
-        self.trueHeurDrop = bfs_search_map(self.dropoffState, res_table.transition2D, _ACTIONS, res_table)
+        self.trueHeurDrop = bfs_search_map(self.dropoffState, res_table.transition2D, _ACTIONS)
 
 
 
