@@ -26,9 +26,9 @@ class Agent:
     ###############################################
 
     # The init function
-    def __init__(self, initState = (0,0,0), newTask = None):
-        self.plan = []  # This holds the future actions that the planning algorithm will give the agent
-        self.path = []  # This holds the paths that the agent has taken thus far.
+    def __init__(self, initState = (0,0), newTask = None):
+        self.plan = None  # This holds the future actions that the planning algorithm will give the agent
+        self.path = None  # This holds the paths that the agent has taken thus far.
         self.trueHeur = {}  # This holds the dictionary matching a state to a true heuristic
         self.currentState = initState   # This holds the current state the agent is in
         self.path.append(self.currentState) # We need to add the initial state to our path
@@ -73,6 +73,10 @@ class Agent:
     def updateCurrentState(self):
         self.currentState = self.plan.pop(0) # Get the next immediate step of the plan (and remove it from the plan)
         self.path.append(self.currentState)  # Append the step to the path
+
+        # Check to see if we reached the goal, if so, remove task from agent and add to report
+
+
         if not self.isAgentIdle():
             # If the Agent is not idle, update the timer associated with the task
             self.task.tickTimer()

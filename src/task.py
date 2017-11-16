@@ -1,3 +1,6 @@
+from global_util import bfs_search_map
+from global_util import _ACTIONS
+
 class Task:
 
     ###############################################
@@ -9,6 +12,8 @@ class Task:
     dropoffState    # This holds the state at which the dropoff must occur (2D)
     taskStatus      # This holds the status of the task (one of 3 strings: 'pickup', 'dropoff', 'complete')
     timer           # This holds the number of time steps used to complete the task thus far (int value)
+    #trueHeurPick
+    trueHeurDrop
 
     ###############################################
     ############# Class Functions #################
@@ -23,8 +28,15 @@ class Task:
         self.timer = 0                      # Start the timer
 
         '''
-        Add code for trueHeur
+        Add code for trueHeur dropoff
+        Add code for trueHeur pickup
         '''
+
+        self.trueHeurDrop = bfs_search_map(self.dropoffState, f, _ACTIONS)
+
+
+
+
 
     # This function progresses the status of the task by one step
     def progressStatus(self):
