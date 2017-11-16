@@ -1,6 +1,7 @@
 '''This is the file that holds the class description for the "Agent" class'''
 from priorityq import *
 from task import *
+from whca import whca_search
 
 
 class Agent:
@@ -8,7 +9,7 @@ class Agent:
     ###############################################
     ############# Class Variables #################
     ###############################################
-
+    '''
     # Required class variables
     currentState    # This will hold the current State (position + timeStep) that the agent is in
     task            # This will hold the task assigned to the agent, if None, then the agent isn't busy.
@@ -19,7 +20,7 @@ class Agent:
     # Allows us to pause the reverse search (if desired)
     revFrontier     # PriorityQ of nodes
     revVisited      # list of nodes
-
+    '''
 
     ###############################################
     ############# Class Functions #################
@@ -28,7 +29,7 @@ class Agent:
     # The init function
     def __init__(self, initState = (0,0), newTask = None):
         self.plan = None  # This holds the future actions that the planning algorithm will give the agent
-        self.path = None  # This holds the paths that the agent has taken thus far.
+        self.path = []  # This holds the paths that the agent has taken thus far.
         self.trueHeur = {}  # This holds the dictionary matching a state to a true heuristic
         self.currentState = initState   # This holds the current state the agent is in
         self.path.append(self.currentState) # We need to add the initial state to our path
@@ -40,10 +41,10 @@ class Agent:
 
 
     # This is the function that will be used to plan a path for this agent
-    def planPath(self):
+    def planPath(self, reserv_table, currentTime):
         # Maybe include a function here to remove old states from the reservation table associated with the old plan
 
-        self.plan = whca_search(self.currentState, self.task, self.frontier, self.visited)
+        self.plan = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime)
             # The task object will yield the pickup and dropoff locations
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
@@ -71,9 +72,12 @@ class Agent:
 
     # This is an alternative move function that simply updates the state the agent is in while appending the new state to the path
     def updateCurrentState(self):
-        self.currentState = self.plan.pop(0) # Get the next immediate step of the plan (and remove it from the plan)
+        self.currentState = self.plan[0] # Get the next immediate step of the plan (and remove it from the plan)
+        self.plan = self.plan[1:]
+        if len(self.plan) == 0:
+            self.task.progressStatus()
+            self.assignTask(None)
         self.path.append(self.currentState)  # Append the step to the path
-
         # Check to see if we reached the goal, if so, remove task from agent and add to report
 
 

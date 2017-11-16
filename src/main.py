@@ -2,9 +2,11 @@
 
 from reserv_table import *
 from env import GridMap
-from global_util import genRandEndpoint
-from global_util import assignTasks
+from global_utility import genRandEndpoint
+from global_utility import assignTasks
+from global_utility import incrementTimestep
 from agent import Agent
+from task import Task
 
 '''
 init env
@@ -51,7 +53,7 @@ while idle agents exists
 # test path of 4 agents, the zeros represent an agent waiting one time step
 
 env = GridMap('env_files/env_warehouse.txt')
-reserv_table = Reserv_Table(env.occupancy_grid)
+reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
 global_timestep = 0
 TaskIDGen = 0
 
@@ -60,8 +62,8 @@ agent0 = Agent(env.endpoints[0])
 agent1 = Agent(env.endpoints[1])
 dropoff0 = env.endpoints[-1]
 dropoff1 = env.endpoints[-2]
-task0 = Task(0, agent0.state, dropoff0, "dropoff")
-task1 = Task(1, agent1.state, dropoff1, "dropoff")
+task0 = Task(0, agent0.currentState, dropoff0, "dropoff", reserv_table)
+task1 = Task(1, agent1.currentState, dropoff1, "dropoff", reserv_table)
 
 
 
@@ -75,14 +77,15 @@ agentsDone = False
 ### ACTION ###
 while not agentsDone:
     for agent in agents:
-        if agent.getPlan is None:
+        if agent.getPlan() is None:
             if not agent.isAgentIdle():
-                agent.planPath()
+                agent.planPath(reserv_table, global_timestep)
                 # Add path to res_table
             else:
                 # plan mini path to stay put
                 # Add path to res_table
-    incrementTimestep()
+                print('entering else loop')
+    incrementTimestep(agents)
     agentDoneCount = 0
     for agent in agents:
         if agent.isAgentIdle():
@@ -93,6 +96,8 @@ while not agentsDone:
 
 ### PRINT RESULTS ###
 agentPaths = [agent.getPath() for agent in agents]
+
+print("Final Paths: ", agentPaths)
 
 env.display_map(agentPaths)
 

@@ -8,11 +8,16 @@ class Reserv_Table:
 
     res_table = {}
 
-    def __init__(self, occupancyGrid = []):
+    def __init__(self, occupancyGrid = [], rows = 0, cols = 0):
 
         self.res_table = {}
-
-        staticObstacle = []
+        self.staticObstacle = {}
+        self.rows = rows
+        self.cols = cols
+        for r in xrange(rows):
+            for c in xrange(cols):
+                if occupancyGrid[r][c] == True:
+                    self.staticObstacle[(r,c)] = True
 
         '''
         self.res_table = {}                     # Create the outer dictionary
@@ -27,6 +32,18 @@ class Reserv_Table:
     # Simply prints the table.  Might be good to format for easy debugging?
     def showTable(self):
         print(self.res_table)
+
+    def checkStateResv(self, state, time):
+        if self.res_table.has_key([state[0], state[1], time]):
+            return True
+        else:
+            return False
+    # A function to reservePaths in table
+    def resvPath(self, pathList, init_timestep):
+        currentTimestep = init_timestep
+        for time, state in enumerate(pathList):
+            self.res_table[(state[0], state[1], time+currentTimestep)] = True
+            self.res_table[(state[0], state[1], time+currentTimestep+1)] = True
 
     # This is Paul's updated 3D transition function
     def transition3D(self, s, a):
@@ -99,24 +116,19 @@ class Reserv_Table:
             print 'Unknown action:', str(a)
 
         # Test if new position is clear of obstacle
-        if self.occupancy_grid[new_pos[_Y]][new_pos[_X]]:
+        if self.staticObstacle.has_key((new_pos[_Y], new_pos[_X])):
             s_prime = (s[_Y], s[_X], new_pos[_t])
             cost = 0.
 
         # Test if new position is clear in reservation table
-        elif self.RES_TABLE[new_pos[_Y]][new_pos[_X]][new_pos[_t]]:  # Fix RES_TABLE reference
+        elif self.res_table.has_key((new_pos[_Y], new_pos[_X], new_pos[_t])):  # Fix RES_TABLE reference
             s_prime = (s[_Y], s[_X], new_pos[_t])
             cost = 0.
 
         # If position is free
         else:
-            s_prime = (new_pos[_Y], new_pos[_X], new_pos[_t])
-
-        # Return s_prime
-        if self.use_costs:
-            return s_prime, cost
-        else:
-            return s_prime
+            s_prime = (new_pos[_Y], new_pos[_X], new_pos[_t])   # s_prime will be the new state
+        return (s_prime[0],s_prime[1])
 
     # This is the original transition function from the gridmap class
     def transition2D(self, s, a):
@@ -131,6 +143,10 @@ class Reserv_Table:
         returns the current state.
         '''
         new_pos = list(s[:])
+        _X = 1  # Index of s for col
+        _Y = 0  # Index of s for row
+        _t = 2  # Index of s for time
+
         # Ensure action stays on the board
         cost = 0.
         if a == 'u':
@@ -173,27 +189,14 @@ class Reserv_Table:
             print 'Unknown action:', str(a)
 
         # Test if new position is clear
-        if self.occupancy_grid[new_pos[0], new_pos[1]]:
+        if self.staticObstacle.has_key((new_pos[0], new_pos[1])):
             s_prime = tuple(s)
             cost = 0.
         else:
             s_prime = tuple(new_pos)
-        if self.use_costs:
-            return s_prime, cost
-        else:
-            return s_prime
+        return s_prime
 
-    def checkStateResv(self, state, time):
-        if self.res_table.has_key([state[0], state[1], time]):
-            return True
-        else:
-            return False
-    # A function to reservePaths in table
-    def resvPath(self, pathList, init_timestep):
-        currentTimestep = init_timestep
-        for time, state in enumerate(pathList):
-            res_table[(state[0], state[1], time+currentTimestep)] = True
-            res_table[(state[0], state[1], time+currentTimestep+1)] = True
+
 
 '''
 List of static obstacle locations

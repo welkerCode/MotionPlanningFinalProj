@@ -1,5 +1,6 @@
-from global_util import bfs_search_map
-from global_util import _ACTIONS
+from global_utility import bfs_search_map
+from global_utility import _ACTIONS
+from reserv_table import Reserv_Table
 
 class Task:
 
@@ -7,6 +8,7 @@ class Task:
     ############# Class Variables #################
     ###############################################
 
+    '''
     taskId          # This is a unique identifier that differentiates this task from the others (int value)
     pickupState     # This holds the state at which the pickup must occur (2D)
     dropoffState    # This holds the state at which the dropoff must occur (2D)
@@ -14,13 +16,13 @@ class Task:
     timer           # This holds the number of time steps used to complete the task thus far (int value)
     #trueHeurPick
     trueHeurDrop
-
+    '''
     ###############################################
     ############# Class Functions #################
     ###############################################
 
     # Initialization function
-    def __init__(self, newId, newPickupState=None, newDropoffState=None, newTaskStatus = "dropoff"):
+    def __init__(self, newId, newPickupState=None, newDropoffState=None, newTaskStatus = "dropoff", res_table = None):
         self.taskId = newId                 # Get the id of the task
         self.pickupState = newPickupState   # Get the pickup location
         self.dropoffState = newDropoffState # Get the dropoff location
@@ -32,7 +34,7 @@ class Task:
         Add code for trueHeur pickup
         '''
 
-        self.trueHeurDrop = bfs_search_map(self.dropoffState, f, _ACTIONS)
+        self.trueHeurDrop = bfs_search_map(self.dropoffState, res_table.transition2D, _ACTIONS, res_table)
 
 
 

@@ -1,13 +1,15 @@
-from transition import transition
 from node import SearchNode
-
+from priorityq import PriorityQ
+from global_utility import backpath
 _ACTIONS = ['u','d','l','r','pause']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
 _X = 1
 _Y = 0
+_DEBUG = False
+_DEBUG_END = False
 
 
-def whca_search(map, currentState, task, revVisited, revFrontier, trueHeur):
+def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
     '''
     map             - environment map.  Needed to obtain the manhattan heuristic?
     currentState    - the state the agent is currently at
@@ -22,7 +24,7 @@ def whca_search(map, currentState, task, revVisited, revFrontier, trueHeur):
     '''
 
     # These are set for every search we run
-    f = transition
+    f = reserv_table.transition3D
     actions = _ACTIONS
 
     # Obtain the goal we are working towards
@@ -38,6 +40,8 @@ def whca_search(map, currentState, task, revVisited, revFrontier, trueHeur):
     frontier.push(n0, cost)
     visited = {}
 
+    action_cost = 1
+
     # Until we run out of places to search
     while len(frontier) > 0:
         n_i = frontier.pop()
@@ -48,22 +52,19 @@ def whca_search(map, currentState, task, revVisited, revFrontier, trueHeur):
             if _DEBUG_END:
                 print 'goal found at', n_i.state
                 print 'goal cost is', n_i.cost
-            return backpath(n_i), visited
+            path = backpath(n_i)
+            reserv_table.resvPath(path, currentTime)
+            return path
         visited[n_i.state] = n_i.cost
         if _DEBUG:
             print 'popped =', n_i.state
             print 'visited =', visited
             print 'frontier =', str(frontier)
         for a in n_i.actions:
-            (s_prime, action_cost) = f(n_i.state, a)
+            (s_prime) = f((n_i.state[0],n_i.state[1], currentTime), a)
             cost_spent = n_i.cost + action_cost # g(s_prime)
             n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
-
-            if(trueHeur.has_key(s_prime)):
-                h = trueHeur.get(s_prime)
-            else:
-                whca_reverse(f, dropoffState, actions, map.manhattan_heuristic, revFrontier, revVisited, trueHeur)
-                h = trueHeur.get(s_prime)
+            h = trueHeur.get(s_prime)
 
             # Add the heuristic for the combined cost-spent and cost-to-go
             new_cost = cost_spent + h # f(s_prime)

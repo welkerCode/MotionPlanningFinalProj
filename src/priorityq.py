@@ -1,3 +1,4 @@
+import heapq
 class PriorityQ:
     '''
         Priority queue implementation with quick access for membership testing
