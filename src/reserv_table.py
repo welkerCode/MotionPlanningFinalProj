@@ -45,6 +45,12 @@ class Reserv_Table:
             self.res_table[(state[0], state[1], time+currentTimestep)] = True
             self.res_table[(state[0], state[1], time+currentTimestep+1)] = True
 
+    def resvAgentInit(self, agents):
+        for agent in agents:
+            self.res_table[agent.currentState[0], agent.currentState[1], 0] = True
+            self.res_table[agent.currentState[0], agent.currentState[1], 1] = True
+
+
     # This is Paul's updated 3D transition function
     def transition3D(self, s, a):
         '''
@@ -121,7 +127,7 @@ class Reserv_Table:
             cost = 0.
 
         # Test if new position is clear in reservation table
-        elif self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t])):  # Fix RES_TABLE reference
+        elif self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t])) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] - 1)) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] + 1)):  # Fix RES_TABLE reference
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
             cost = 0.
 

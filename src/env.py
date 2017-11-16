@@ -93,6 +93,12 @@ class GridMap:
                 Each matrix element is a tuple of 2d position or a "0" if the
                 agent is waiting for that timestep.
         '''
+
+        for i, path in enumerate(paths):
+            for j, tuple in enumerate(path):
+                transTuple = (tuple[1],tuple[0])
+                paths[i][j] = transTuple
+
         fig, ax = plt.subplots()
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)
 
@@ -141,7 +147,7 @@ class GridMap:
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
                                         frames=50,        # animation frames
-                                        interval=1000,    # time between frames (ms)
+                                        interval=2000,    # time between frames (ms)
                                         repeat=False,
                                         blit=True)
 

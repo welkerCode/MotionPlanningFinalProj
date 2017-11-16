@@ -42,7 +42,9 @@ class Task:
 
     # This function progresses the status of the task by one step
     def progressStatus(self):
-        if self.taskStatus == "pickup":
+        if self.taskStatus == "pending":
+            self.taskStatus = "pickup"
+        elif self.taskStatus == "pickup":
             self.taskStatus = "dropoff"
         elif self.taskStatus == "dropoff":
             self.taskStatus = "complete"
