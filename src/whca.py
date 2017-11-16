@@ -1,8 +1,8 @@
 from transition import transition
 from node import SearchNode
 
-_ACTIONS = ['u','d','l','r']
-_ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se']
+_ACTIONS = ['u','d','l','r','pause']
+_ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
 _X = 1
 _Y = 0
 
