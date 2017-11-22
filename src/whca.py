@@ -54,6 +54,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
                 print 'goal cost is', n_i.cost
             path = backpath(n_i)
             reserv_table.resvPath(path, currentTime)
+            print(path)
             return path
         visited[n_i.state] = n_i.cost
         if _DEBUG:

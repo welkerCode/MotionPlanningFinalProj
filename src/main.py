@@ -62,31 +62,41 @@ agent0Start = env.endpoints[0]
 agent1Start = env.endpoints[1]
 print("agent0Start: ",agent0Start)
 print("agent1Start: ",agent1Start)
-agent0 = Agent(env.endpoints[0])
-agent1 = Agent(env.endpoints[1])
+#agent0 = Agent(env.endpoints[0])
+#agent1 = Agent(env.endpoints[1])
 agent2 = Agent(env.endpoints[-3])
 agent3 = Agent(env.endpoints[-4])
 dropoff0 = env.endpoints[-1]
 dropoff1 = env.endpoints[-2]
-dropoff2 = env.endpoints[2]
-dropoff3 = env.endpoints[3]
+dropoff2 = env.endpoints[-5]
+dropoff3 = env.endpoints[-10]
 print('dropoff0: ', dropoff0)
 print('dropoff1: ', dropoff1)
 dropoff0_new = (dropoff0[1],dropoff0[0])
 dropoff1_new = (dropoff1[1],dropoff1[0])
-task0 = Task(0, agent0.currentState, dropoff0, "dropoff", reserv_table)
-task1 = Task(1, agent1.currentState, dropoff1, "dropoff", reserv_table)
-task2 = Task(1, agent1.currentState, dropoff2, "dropoff", reserv_table)
-task3 = Task(1, agent1.currentState, dropoff3, "dropoff", reserv_table)
+#task0 = Task(0, agent0.currentState, dropoff0, "dropoff", reserv_table)
+#task1 = Task(1, agent1.currentState, dropoff1, "dropoff", reserv_table)
+task2 = Task(2, agent2.currentState, dropoff2, "dropoff", reserv_table)
+task3 = Task(3, agent3.currentState, dropoff3, "dropoff", reserv_table)
 
-tasks = [task0, task1, task2, task3]
-agents = [agent0, agent1, agent2, agent3]
+
+
+#tasks = [task0, task1, task2, task3]
+#agents = [agent0, agent1, agent2, agent3]
+tasks = [task2,task3]
+agents = [agent2,agent3]
 #assignTasks(tasks[:1], agents[:1])
 #assignTasks(tasks[2:], agents[2:])
-agent0.assignTask(task0)
-agent1.assignTask(task1)
+#agent0.assignTask(task0)
+#agent1.assignTask(task1)
 agent2.assignTask(task2)
 agent3.assignTask(task3)
+
+
+print("Agent2 init state: ", agent2.currentState)
+print("Agent2 goal state: ", agent2.task.getDropoff())
+print("Agent3 init state: ", agent3.currentState)
+print("Agent3 goal state: ", agent3.task.getDropoff())
 
 agentsDone = False
 
@@ -102,7 +112,7 @@ while not agentsDone:
             else:
                 # plan mini path to stay put
                 # Add path to res_table
-                print('entering else loop')
+                agent.plan = [(agent.currentState[0],agent.currentState[1], global_timestep+1)]
     incrementTimestep(agents)
     agentDoneCount = 0
     for agent in agents:

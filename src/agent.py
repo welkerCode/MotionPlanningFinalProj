@@ -75,8 +75,10 @@ class Agent:
         self.currentState = self.plan[0] # Get the next immediate step of the plan (and remove it from the plan)
         self.plan = self.plan[1:]
         if len(self.plan) == 0:
-            self.task.progressStatus()
-            self.assignTask(None)
+            if not self.isAgentIdle():
+                self.task.progressStatus()
+                self.assignTask(None)
+                self.plan = None
         self.path.append(self.currentState)  # Append the step to the path
         # Check to see if we reached the goal, if so, remove task from agent and add to report
 
