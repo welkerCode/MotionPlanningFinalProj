@@ -54,7 +54,8 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
                 print 'goal cost is', n_i.cost
             path = backpath(n_i)
             reserv_table.resvPath(path, currentTime)
-            print(path)
+            if _DEBUG:
+                print(path)
             return path
         visited[n_i.state] = n_i.cost
         if _DEBUG:
@@ -93,7 +94,7 @@ def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict
     None of the following are necessary because the frontier and visited variables will be set up prior to this search
     The frontier should be given the goal with a cost of 0 as init_state and stored in frontier.  The visited List
     should just be initialized
-    
+
     cost = 0
     n0 = SearchNode(init_state, actions, cost=cost)
     frontier = PriorityQ()

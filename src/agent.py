@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 '''This is the file that holds the class description for the "Agent" class'''
 from priorityq import *
 from task import *
 from whca import whca_search
 
+
+_DEBUG = False
 
 class Agent:
 
@@ -27,13 +32,15 @@ class Agent:
     ###############################################
 
     # The init function
-    def __init__(self, initState = (0,0), newTask = None):
+    def __init__(self, _id,  initState = (0,0), newTask = None):
+        self._id = _id
         self.plan = None  # This holds the future actions that the planning algorithm will give the agent
         self.path = []  # This holds the paths that the agent has taken thus far.
         self.trueHeur = {}  # This holds the dictionary matching a state to a true heuristic
         self.currentState = initState   # This holds the current state the agent is in
         self.path.append(self.currentState) # We need to add the initial state to our path
         self.task = newTask # This holds the task assigned to the agent.  If none, then the agent is 'idle'
+        self.timestep = 0
 
         # In order to pause our reverse search for true heuristic, we need these two member variables
         self.revFrontier = PriorityQ()  # This is used to hold the frontier of the reverse search
@@ -48,6 +55,9 @@ class Agent:
             # The task object will yield the pickup and dropoff locations
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
+
+    def reserveState(self, reserv_table):
+        print(len(self.path))
 
     # This function assigns a task to the agent
     def assignTask(self, newTask):
@@ -72,10 +82,20 @@ class Agent:
 
     # This is an alternative move function that simply updates the state the agent is in while appending the new state to the path
     def updateCurrentState(self):
-        self.currentState = self.plan[0] # Get the next immediate step of the plan (and remove it from the plan)
+        self.timestep += 1
+        if _DEBUG:
+            print("Agent {} current plan: {}".format(self._id, self.plan))
+        try:
+            self.currentState = self.plan[0] # Get the next immediate step of the plan (and remove it from the plan)
+        except IndexError:
+            self.currentState = self.path[-1]
+
         self.plan = self.plan[1:]
         if len(self.plan) == 0:
+            if _DEBUG:
+                print("Agent {} task:".format(self._id, self.task))
             if not self.isAgentIdle():
+                # print("Agent {} task status: {}".format(self._id, self.task.getTaskStatus()))
                 self.task.progressStatus()
                 self.assignTask(None)
                 self.plan = None
@@ -89,18 +109,12 @@ class Agent:
 
     # Function to see if the agent is considered 'idle' and taskless
     def isAgentIdle(self):
-        if self.task == None:
-            return True
-        else:
-            return False
+        return self.task == None
 
     # Function to return whether the agent is done
     def isTaskComplete(self):
         taskStatus = self.task.getTaskStatus()
-        if taskStatus == "complete":
-            return True
-        else:
-            return False
+        return taskStatus == "complete"
 
     ###############################################
     ############# Getters and Setters #############

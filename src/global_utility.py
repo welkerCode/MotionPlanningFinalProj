@@ -1,10 +1,12 @@
+import numpy as np
+
 _ACTIONS = ['u', 'd', 'l', 'r']
 
-def genRandEndpoint(endList, refPoint=None):
-    endListLen = len(endList)
+def genRandEndpoint(endpoints, refPoint=None):
+    endListLen = len(endpoints)
     endpoint = refPoint
     while refPoint == endpoint:
-        endpointIndex = np.random.randint(0, endListLen - 1, 1)
+        endpointIndex = np.random.randint(0, endListLen - 1)
         endpoint = endpoints[endpointIndex]
     return endpoint
 
@@ -146,7 +148,7 @@ def manhattan_heuristic(self, s, desiredNode):
     Euclidean heuristic function
 
     s - tuple describing the state as (row, col) position on the grid.
-    desiredNode - 
+    desiredNode -
     returns - floating point estimate of the cost to the goal from state s
 
 

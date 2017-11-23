@@ -7,6 +7,7 @@ import matplotlib.animation as animation
 import numpy as np
 import heapq
 from math import hypot, fabs
+import sys
 
 """
 File: env.py
@@ -113,9 +114,12 @@ class GridMap:
 
         # create circles to represent each agent in starting position
         agents = []
+        agent_ids = []
         for i, path in enumerate(paths):
             agents.append(mpl.patches.Circle(path[0], 0.5,
                                              color=_COLORS[i%len(_COLORS)]))
+            agent_ids.append(mpl.text.Text(x=path[0][0], y=path[0][1], text=u'{}'.format(i)))
+
 
         def init():
             """
@@ -147,28 +151,28 @@ class GridMap:
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
                                         frames=50,        # animation frames
-                                        interval=2000,    # time between frames (ms)
+                                        interval=1000,    # time between frames (ms)
                                         repeat=False,
                                         blit=True)
 
-        ax.set_yticks(np.arange(0,20,5))
-        ax.set_xticks(np.arange(-.5, 35, 1), minor=True);
-        ax.set_yticks(np.arange(-.5, 21, 1), minor=True);
+        # ax.set_yticks(np.arange(0,20,5))
+        ax.set_xticks(np.arange(-.5, self.cols, 1), minor=True);
+        ax.set_yticks(np.arange(-.5, self.rows, 1), minor=True);
         ax.grid(which='minor', color='k', linewidth=0.5)
 
         plt.show()
 
-def main():
+def main(args):
     # test path of 4 agents, the zeros represent an agent waiting one time step
     test_paths = [[(1,1),0,0,0,0,(1,2),(2,2),(3,2)],
                   [(5,1),(5,2),0,(5,3),(5,4),(5,5)],
                   [(1,5),(1,6),(1,7),(1,8),(1,9)],
                   [(2,7),(3,7),(3,8),(3,9),0,(3,10)]]
 
-    test = GridMap('env_files/env_warehouse.txt')
-    test.display_map(paths=test_paths)
+    test = GridMap('env_files/{}'.format(args[1]))
+    test.display_map()
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
 
 
