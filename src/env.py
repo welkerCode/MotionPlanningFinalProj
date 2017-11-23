@@ -118,8 +118,9 @@ class GridMap:
         for i, path in enumerate(paths):
             agents.append(mpl.patches.Circle(path[0], 0.5,
                                              color=_COLORS[i%len(_COLORS)]))
-            agent_ids.append(mpl.text.Text(x=path[0][0], y=path[0][1], text=u'{}'.format(i)))
 
+        for i,path in enumerate(paths):
+            plt.plot(*zip(*path), color=_COLORS[i%len(_COLORS)])
 
         def init():
             """
