@@ -63,8 +63,8 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
     :env: path to environment file
     :n_agents: number of agent/task pairs to generate randomly
     :random_tasks: in True, generate random pairs of agent/tasks
-    :agent_list: if not random tasks, list of agents
-    :task_list: if not random tasks, list of tasks
+    :agent_list: if not random tasks, list of agent endpoint indexes
+    :task_list: if not random tasks, list of task endpoint indexes
     :returns: TODO
 
     """
@@ -141,11 +141,11 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
 
 
 if __name__ == "__main__":
-    env = sys.argv[1]
-    n_agents = int(sys.argv[2])
-    main(env, n_agents)
+    # env = sys.argv[1]
+    # n_agents = int(sys.argv[2])
+    # main(env, n_agents)
 
-#     test_agent_ep = [-1,1,0]
-#     test_task_ep = [-2,-3,2]
+    test_agent_ep = [0, -2]
+    test_task_ep = [-1, 1]
 
-#     main('env_trial.txt', 3, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+    main('env_trial.txt', 2, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)

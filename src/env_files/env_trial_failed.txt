@@ -1,0 +1,20 @@
+Failed tests for the env_trial.txt environment:
+
+Agent 0
+        Start: (4,4)  endpoint:-1
+        Goal:  (4,3)  endpoint:-2
+Agent 1
+        Start: (0,4)  endpoint:1
+        Goal:  (4,0)  endpoint:-3
+Agent 2
+        Start: (0,0)  endpoint:0
+        Goal:  (2,1)  endpoint:2
+
+--------------------------
+
+Agent 0:
+        Start: (0,0) endpoint: 0
+        Goal:  (4,4)  endpoint:-1
+Agent 1:
+        Start: (4,3) endpoint:-2
+        Goal:  (0,4) endpoint: 1
