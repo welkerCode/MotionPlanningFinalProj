@@ -1,3 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+File: reserv_table.py
+Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
+Email:
+Github:
+Description:
+"""
+
+from itertools import groupby
+
 class Reserv_Table:
     '''
     The reservation table is a dictionary of dictionaries.  The outer dictionary uses x values as the key to accessing
@@ -38,6 +51,10 @@ class Reserv_Table:
             return True
         else:
             return False
+
+    def resvState(self, state, timestep):
+        self.res_table[(state[0], state[1], timestep)] = True
+
     # A function to reservePaths in table
     def resvPath(self, pathList, init_timestep):
         currentTimestep = init_timestep
@@ -118,23 +135,24 @@ class Reserv_Table:
             new_pos[_ROW] = s[_ROW]
             new_pos[_COL] = s[_COL]
             new_pos[_t] = s[_t] + 1
+            cost = 0.5
         else:
             print 'Unknown action:', str(a)
 
         # Test if new position is clear of obstacle
         if self.staticObstacle.has_key((new_pos[_ROW], new_pos[_COL])):
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
-            cost = 0.
+            cost = 0.5
 
         # Test if new position is clear in reservation table
         elif self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t])) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] - 1)) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] + 1)):  # Fix RES_TABLE reference
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
-            cost = 0.
+            cost = 0.5
 
         # If position is free
         else:
             s_prime = (new_pos[_ROW], new_pos[_COL], new_pos[_t])   # s_prime will be the new state
-        return (s_prime[_ROW],s_prime[_COL])
+        return (s_prime[_ROW],s_prime[_COL]), cost
 
 
     # This is the original transition function from the gridmap class
@@ -203,6 +221,25 @@ class Reserv_Table:
             s_prime = tuple(new_pos)
         return s_prime
 
+    def display(self, env):
+        sorted_keys = sorted(self.res_table.iterkeys(), key = lambda x: x[2])
+
+        time_steps = [list(j) for i, j in groupby(sorted_keys, key=lambda x:x[2])]
+
+        for t in range(len(time_steps)):
+            table = ''
+            for i in range(env.rows):
+                row = ''
+                for j in range(env.cols):
+                    if (i,j,t) in time_steps[t]:
+                        row+='x'
+                    else:
+                        row+='0'
+                table += row
+                table += '\n'
+            print('------------\n')
+            print('Timestep: {}'.format(t))
+            print(table)
 
 
 '''

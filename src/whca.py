@@ -1,8 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+File: whca.py
+Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
+Email:
+Github:
+Description:
+"""
+
+
 from node import SearchNode
 from priorityq import PriorityQ
 from global_utility import backpath
 _ACTIONS = ['u','d','l','r','pause']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
+_ACTION_1_COST =  {'u':1,'d':1,'l':1,'r':1,'pause':0.5}
+_ACTION_2_COST = {'u':1,'d':1,'l':1,'r':1,'ne':1.5,'nw':1.5,'sw':1.5,'se':1.5,'pause':0.5}
+
 _COL = 1
 _ROW = 0
 _DEBUG = False
@@ -26,6 +41,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
     # These are set for every search we run
     f = reserv_table.transition3D
     actions = _ACTIONS
+    action_cost = _ACTION_1_COST
 
     # Obtain the goal we are working towards
     dropoffState = task.getDropoff()
@@ -40,7 +56,6 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
     frontier.push(n0, cost)
     visited = {}
 
-    action_cost = 1
 
     # Until we run out of places to search
     while len(frontier) > 0:
@@ -63,8 +78,8 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
             print 'visited =', visited
             print 'frontier =', str(frontier)
         for a in n_i.actions:
-            (s_prime) = f((n_i.state[_ROW],n_i.state[_COL], currentTime), a)
-            cost_spent = n_i.cost + action_cost # g(s_prime)
+            s_prime, cost = f((n_i.state[_ROW],n_i.state[_COL], currentTime), a)
+            cost_spent = n_i.cost + cost # g(s_prime)
             n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
             h = trueHeur.get(s_prime)
 

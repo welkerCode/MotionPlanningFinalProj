@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''This is the program that needs to be run to execute our simulation'''
+"""
+File: global_utility.py
+Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
+Email:
+Github:
+Description: This is the program that needs to be run to execute our simulation"""
 
 from reserv_table import *
 from env import GridMap
@@ -103,7 +108,7 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
         for i, agent in enumerate(agents):
             print("Agent {}:".format(i))
             print("\t Start: {}".format(agent.currentState))
-            print("\t Goal: {}".format(agent.task.dropoffState))
+            print("\t Goal:   {}".format(agent.task.dropoffState))
 
     agentsDone = False
 
@@ -120,13 +125,18 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
                     # plan mini path to stay put
                     # Add path to res_table
                     agent.plan = [(agent.currentState[0],agent.currentState[1])]
-        incrementTimestep(agents)
+                    reserv_table.resvState(agent.currentState, global_timestep)
+
+        incrementTimestep(agents, reserv_table)
+        global_timestep += 1
         agentDoneCount = 0
         for agent in agents:
             if agent.isAgentIdle():
                 agentDoneCount += 1
         if agentDoneCount == len(agents):
             agentsDone = True
+
+    reserv_table.display(env)
 
     ### PRINT RESULTS ###
     agentPaths = [agent.getPath() for agent in agents]
@@ -141,11 +151,11 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
 
 
 if __name__ == "__main__":
-    # env = sys.argv[1]
-    # n_agents = int(sys.argv[2])
-    # main(env, n_agents)
+    env = sys.argv[1]
+    n_agents = int(sys.argv[2])
+    main(env, n_agents)
 
-    test_agent_ep = [0, -2]
-    test_task_ep = [-1, 1]
+    # test_agent_ep = [0, -2]
+    # test_task_ep = [-1, 1]
 
-    main('env_trial.txt', 2, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+    # main('env_trial.txt', 2, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)

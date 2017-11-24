@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import numpy as np
-import heapq
-from math import hypot, fabs
-import sys
-
 """
 File: env.py
 Author: Cade Parkison
@@ -30,6 +22,15 @@ Description:  Environment class GridMap to read in map text files, and animate
         - add more robust color scheme for more than 7 unique colors.
         - add a way to visualize entire paths in static image
 """
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
+import heapq
+from math import hypot, fabs
+import sys
+
 
 _DEBUG = False
 _GOAL_COLOR = 0.45

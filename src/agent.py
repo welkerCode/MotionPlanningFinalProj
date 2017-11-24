@@ -7,7 +7,7 @@ from task import *
 from whca import whca_search
 
 
-_DEBUG = False
+_DEBUG = True
 
 class Agent:
 
@@ -81,7 +81,7 @@ class Agent:
         return True         # If nothing went wrong, return True
 
     # This is an alternative move function that simply updates the state the agent is in while appending the new state to the path
-    def updateCurrentState(self):
+    def updateCurrentState(self, reserv_table):
         self.timestep += 1
         if _DEBUG:
             print("Agent {} current plan: {}".format(self._id, self.plan))
@@ -92,6 +92,7 @@ class Agent:
 
         self.plan = self.plan[1:]
         if len(self.plan) == 0:
+            reserv_table.resvState(self.currentState, self.timestep)
             if _DEBUG:
                 print("Agent {} task:".format(self._id, self.task))
             if not self.isAgentIdle():

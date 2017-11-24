@@ -28,17 +28,11 @@ class Task:
         self.dropoffState = newDropoffState # Get the dropoff location
         self.taskStatus = newTaskStatus     # Get the predefined status of the task (start at dropoff if agent is already at pickup location)
         self.timer = 0                      # Start the timer
-
         '''
         Add code for trueHeur dropoff
         Add code for trueHeur pickup
         '''
-
         self.trueHeurDrop = bfs_search_map(self.dropoffState, res_table.transition2D, _ACTIONS)
-
-
-
-
 
     # This function progresses the status of the task by one step
     def progressStatus(self):

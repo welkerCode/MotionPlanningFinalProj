@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+File: global_utility.py
+Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
+Email:
+Github:
+Description:
+"""
+
 import numpy as np
 
 _ACTIONS = ['u', 'd', 'l', 'r']
@@ -22,7 +33,7 @@ def assignTasks(tasks, agents):
             agentToAssign.assignTask(task)
          #   tasks.remove(task)
 
-def incrementTimestep(agents):
+def incrementTimestep(agents, reserv_table):
     '''
      increment timestep
         update all agent movements
@@ -32,7 +43,7 @@ def incrementTimestep(agents):
     :return:
     '''
     for agent in agents:
-        agent.updateCurrentState()
+        agent.updateCurrentState(reserv_table)
 
 def backpath(node):
     '''
