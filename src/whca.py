@@ -78,10 +78,10 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
             print 'visited =', visited
             print 'frontier =', str(frontier)
         for a in n_i.actions:
-            s_prime, cost = f((n_i.state[_ROW],n_i.state[_COL], currentTime), a)
+            s_prime, cost = f(n_i.state, a)
             cost_spent = n_i.cost + cost # g(s_prime)
             n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
-            h = trueHeur.get(s_prime)
+            h = trueHeur.get(s_prime[:2])
 
             # Add the heuristic for the combined cost-spent and cost-to-go
             new_cost = cost_spent + h # f(s_prime)

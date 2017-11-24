@@ -97,6 +97,7 @@ class GridMap:
         '''
 
         for i, path in enumerate(paths):
+            path = [p[:2] for p in path]
             for j, tuple in enumerate(path):
                 transTuple = (tuple[1],tuple[0])
                 paths[i][j] = transTuple

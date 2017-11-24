@@ -120,12 +120,14 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
             if agent.getPlan() is None:
                 if not agent.isAgentIdle():
                     agent.planPath(reserv_table, global_timestep)
+                    print("Agent {} Plan: {}".format(agent._id, agent.plan))
                     # Add path to res_table
                 else:
                     # plan mini path to stay put
                     # Add path to res_table
-                    agent.plan = [(agent.currentState[0],agent.currentState[1])]
-                    reserv_table.resvState(agent.currentState, global_timestep)
+                    next_state = agent.currentState[:2] + (agent.currentState[2] + 1,)
+                    agent.plan = [next_state]
+                    reserv_table.resvState(next_state)
 
         incrementTimestep(agents, reserv_table)
         global_timestep += 1
@@ -151,11 +153,11 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
 
 
 if __name__ == "__main__":
-    env = sys.argv[1]
-    n_agents = int(sys.argv[2])
-    main(env, n_agents)
+    # env = sys.argv[1]
+    # n_agents = int(sys.argv[2])
+    # main(env, n_agents)
 
-    # test_agent_ep = [0, -2]
-    # test_task_ep = [-1, 1]
+    test_agent_ep = [-3, -4, -2]
+    test_task_ep = [2, -1, 1]
 
-    # main('env_trial.txt', 2, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+    main('env_trial.txt', 3, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)

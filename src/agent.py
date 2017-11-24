@@ -7,7 +7,7 @@ from task import *
 from whca import whca_search
 
 
-_DEBUG = True
+_DEBUG = False
 
 class Agent:
 
@@ -32,12 +32,12 @@ class Agent:
     ###############################################
 
     # The init function
-    def __init__(self, _id,  initState = (0,0), newTask = None):
+    def __init__(self, _id,  initPos = (0,0), newTask = None):
         self._id = _id
         self.plan = None  # This holds the future actions that the planning algorithm will give the agent
         self.path = []  # This holds the paths that the agent has taken thus far.
         self.trueHeur = {}  # This holds the dictionary matching a state to a true heuristic
-        self.currentState = initState   # This holds the current state the agent is in
+        self.currentState = (initPos[0], initPos[1], 0)   # This holds the current state the agent is in
         self.path.append(self.currentState) # We need to add the initial state to our path
         self.task = newTask # This holds the task assigned to the agent.  If none, then the agent is 'idle'
         self.timestep = 0
@@ -52,6 +52,7 @@ class Agent:
         # Maybe include a function here to remove old states from the reservation table associated with the old plan
 
         self.plan = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime)
+        print("Agent {} Plan: {}".format(self._id, self.plan))
             # The task object will yield the pickup and dropoff locations
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
@@ -86,13 +87,13 @@ class Agent:
         if _DEBUG:
             print("Agent {} current plan: {}".format(self._id, self.plan))
         try:
-            self.currentState = self.plan[0] # Get the next immediate step of the plan (and remove it from the plan)
+            self.currentState = self.plan[0] + (self.timestep,) # Get the next immediate step of the plan (and remove it from the plan)
         except IndexError:
-            self.currentState = self.path[-1]
+            self.currentState = self.path[-1]+ (self.timestep,)
 
         self.plan = self.plan[1:]
         if len(self.plan) == 0:
-            reserv_table.resvState(self.currentState, self.timestep)
+            reserv_table.resvState(self.currentState)
             if _DEBUG:
                 print("Agent {} task:".format(self._id, self.task))
             if not self.isAgentIdle():

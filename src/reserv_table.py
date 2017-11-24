@@ -52,8 +52,8 @@ class Reserv_Table:
         else:
             return False
 
-    def resvState(self, state, timestep):
-        self.res_table[(state[0], state[1], timestep)] = True
+    def resvState(self, state):
+        self.res_table[state] = True
 
     # A function to reservePaths in table
     def resvPath(self, pathList, init_timestep):
@@ -152,7 +152,7 @@ class Reserv_Table:
         # If position is free
         else:
             s_prime = (new_pos[_ROW], new_pos[_COL], new_pos[_t])   # s_prime will be the new state
-        return (s_prime[_ROW],s_prime[_COL]), cost
+        return s_prime, cost
 
 
     # This is the original transition function from the gridmap class
