@@ -47,10 +47,7 @@ class Reserv_Table:
         print(self.res_table)
 
     def checkStateResv(self, state, time):
-        if self.res_table.has_key([state[0], state[1], time]):
-            return True
-        else:
-            return False
+        return self.res_table.has_key([state[0], state[1], time])
 
     def resvState(self, state):
         self.res_table[state] = True
@@ -69,7 +66,7 @@ class Reserv_Table:
 
 
     # This is Paul's updated 3D transition function
-    def transition3D(self, s, a):
+    def transition3D(self, s, a, unplanned_agents):
         '''
         Transition function for the current grid map.
 
@@ -146,6 +143,10 @@ class Reserv_Table:
 
         # Test if new position is clear in reservation table
         elif self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t])) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] - 1)) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] + 1)):  # Fix RES_TABLE reference
+            s_prime = (s[_ROW], s[_COL], new_pos[_t])
+            cost = 0.5
+
+        elif tuple(new_pos[:2]) in unplanned_agents:
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
             cost = 0.5
 
@@ -226,6 +227,7 @@ class Reserv_Table:
 
         time_steps = [list(j) for i, j in groupby(sorted_keys, key=lambda x:x[2])]
 
+        print('\nReservation Table:')
         for t in range(len(time_steps)):
             table = ''
             for i in range(env.rows):
@@ -237,8 +239,8 @@ class Reserv_Table:
                         row+='0'
                 table += row
                 table += '\n'
-            print('------------\n')
-            print('Timestep: {}'.format(t))
+            print('------------')
+            print('Timestep: {}\n'.format(t))
             print(table)
 
 

@@ -48,11 +48,10 @@ class Agent:
 
 
     # This is the function that will be used to plan a path for this agent
-    def planPath(self, reserv_table, currentTime):
+    def planPath(self, reserv_table, unplanned_agents, currentTime):
         # Maybe include a function here to remove old states from the reservation table associated with the old plan
 
-        self.plan = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime)
-        print("Agent {} Plan: {}".format(self._id, self.plan))
+        self.plan = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime, unplanned_agents)
             # The task object will yield the pickup and dropoff locations
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
@@ -87,9 +86,9 @@ class Agent:
         if _DEBUG:
             print("Agent {} current plan: {}".format(self._id, self.plan))
         try:
-            self.currentState = self.plan[0] + (self.timestep,) # Get the next immediate step of the plan (and remove it from the plan)
+            self.currentState = self.plan[0]  # Get the next immediate step of the plan (and remove it from the plan)
         except IndexError:
-            self.currentState = self.path[-1]+ (self.timestep,)
+            self.currentState = self.path[-1][:2] + (self.timestep,)
 
         self.plan = self.plan[1:]
         if len(self.plan) == 0:

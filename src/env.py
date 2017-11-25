@@ -32,6 +32,11 @@ from math import hypot, fabs
 import sys
 
 
+# Set up formatting for the movie files
+Writer = animation.writers['ffmpeg']
+writer = Writer(fps=1, metadata=dict(artist='Me'), bitrate=1800)
+
+
 _DEBUG = False
 _GOAL_COLOR = 0.45
 _INIT_COLOR = 0.25
@@ -85,7 +90,7 @@ class GridMap:
                 if lines[r][c] == 'e':
                     self.endpoints.append((r,c))
 
-    def display_map(self, paths=[]):
+    def display_map(self, paths=[], record=False):
         '''
         Visualize the map read in. Optionally display the resulting plans for
         all agents
@@ -153,10 +158,13 @@ class GridMap:
 
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
-                                        frames=50,        # animation frames
+                                        frames=15,        # animation frames
                                         interval=1000,    # time between frames (ms)
                                         repeat=False,
                                         blit=True)
+
+        if record:
+            anim.save('trial_animation.mp4', writer=writer)
 
         # ax.set_yticks(np.arange(0,20,5))
         ax.set_xticks(np.arange(-.5, self.cols, 1), minor=True);

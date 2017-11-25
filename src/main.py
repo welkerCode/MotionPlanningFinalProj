@@ -103,8 +103,9 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
 
 
     if _DEBUG:
-        print("Agent Starts and Goals")
+        print("\nAgent Starts and Goals")
         print("------------------------\n")
+
         for i, agent in enumerate(agents):
             print("Agent {}:".format(i))
             print("\t Start: {}".format(agent.currentState))
@@ -113,14 +114,19 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
     agentsDone = False
 
     reserv_table.resvAgentInit(agents)
+    unplanned_agents = [agent.currentState[:2] for agent in agents]
 
     ### ACTION ###
     while not agentsDone:
         for agent in agents:
             if agent.getPlan() is None:
                 if not agent.isAgentIdle():
-                    agent.planPath(reserv_table, global_timestep)
-                    print("Agent {} Plan: {}".format(agent._id, agent.plan))
+                    if _DEBUG:
+                        print("\nPlanning agent {}...".format(agent._id))
+                    agent.planPath(reserv_table, unplanned_agents, global_timestep)
+                    unplanned_agents.remove(agent.currentState[:2])
+                    if _DEBUG:
+                        print("\nAgent {} Plan: {}".format(agent._id, agent.plan))
                     # Add path to res_table
                 else:
                     # plan mini path to stay put
@@ -149,15 +155,36 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
         for i,agent in enumerate(agents):
             print("Agent {}: {}".format(i, agent.getPath()))
 
-    env.display_map(agentPaths)
+    env.display_map(agentPaths, record=False)
 
 
 if __name__ == "__main__":
-    # env = sys.argv[1]
-    # n_agents = int(sys.argv[2])
-    # main(env, n_agents)
+    env = sys.argv[1]
+    n_agents = int(sys.argv[2])
+    main(env, n_agents)
 
-    test_agent_ep = [-3, -4, -2]
-    test_task_ep = [2, -1, 1]
+    # Failed test 1
+    # test_agent_ep = [-2, -3]
+    # test_task_ep = [2, -4]
 
-    main('env_trial.txt', 3, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+    # main('env_trial.txt', 2, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+
+
+    # Failed Test 2
+    # test_agent_ep = [-3,-2]
+    # test_task_ep = [-4,2]
+
+    # main('env_trial.txt', 2, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+
+    # Env trial2 Testing
+
+    # Passed
+    # test_agent_ep = [-3,3]
+    # test_task_ep = [2,-4]
+
+    #
+    # test_agent_ep = [-3,3,1]
+    # test_task_ep = [2,-4,-2]
+
+    # main('env_trial2.txt', 3, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
+

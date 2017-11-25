@@ -15,8 +15,8 @@ from priorityq import PriorityQ
 from global_utility import backpath
 _ACTIONS = ['u','d','l','r','pause']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
-_ACTION_1_COST =  {'u':1,'d':1,'l':1,'r':1,'pause':0.5}
-_ACTION_2_COST = {'u':1,'d':1,'l':1,'r':1,'ne':1.5,'nw':1.5,'sw':1.5,'se':1.5,'pause':0.5}
+# _ACTION_1_COST =  {'u':1,'d':1,'l':1,'r':1,'pause':0.5}
+# _ACTION_2_COST = {'u':1,'d':1,'l':1,'r':1,'ne':1.5,'nw':1.5,'sw':1.5,'se':1.5,'pause':0.5}
 
 _COL = 1
 _ROW = 0
@@ -24,7 +24,7 @@ _DEBUG = False
 _DEBUG_END = False
 
 
-def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
+def whca_search(currentState, task, trueHeur, reserv_table, currentTime, unplanned_agents):
     '''
     map             - environment map.  Needed to obtain the manhattan heuristic?
     currentState    - the state the agent is currently at
@@ -41,7 +41,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
     # These are set for every search we run
     f = reserv_table.transition3D
     actions = _ACTIONS
-    action_cost = _ACTION_1_COST
+    # action_cost = _ACTION_1_COST
 
     # Obtain the goal we are working towards
     dropoffState = task.getDropoff()
@@ -74,11 +74,10 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
             return path
         visited[n_i.state] = n_i.cost
         if _DEBUG:
-            print 'popped =', n_i.state
-            print 'visited =', visited
-            print 'frontier =', str(frontier)
+            print('popped = {}'.format(n_i.state))
+            print('visited = {}'.format(visited))
         for a in n_i.actions:
-            s_prime, cost = f(n_i.state, a)
+            s_prime, cost = f(n_i.state, a, unplanned_agents)
             cost_spent = n_i.cost + cost # g(s_prime)
             n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
             h = trueHeur.get(s_prime[:2])
