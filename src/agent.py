@@ -1,7 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''This is the file that holds the class description for the "Agent" class'''
+"""
+File: agent.py
+Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
+Emails: <taylormaxwelker@gmail.com>,  <cadeparkison@gmail.com>, <wadspau2@gmail.com>
+Githubs: welkerCode, c-park
+Description: Holds the class description for the "Agent" class
+"""
+
+
 from priorityq import *
 from task import *
 from whca import whca_search
@@ -31,7 +39,6 @@ class Agent:
     ############# Class Functions #################
     ###############################################
 
-    # The init function
     def __init__(self, _id,  initPos = (0,0), newTask = None):
         self._id = _id
         self.plan = None  # This holds the future actions that the planning algorithm will give the agent
@@ -48,24 +55,34 @@ class Agent:
         self.revVisited = None          # This is used to hold the list of nodes visited for the reverse search
 
 
-    # This is the function that will be used to plan a path for this agent
-    def planPath(self, reserv_table, unplanned_agents, currentTime):
-        # Maybe include a function here to remove old states from the reservation table associated with the old plan
+    def planPath(self, reserv_table, currentTime):
+        """
+        Plans a path for the agent
+        Maybe include a function here to remove old states from the reservation
+        table associated with the old plan
+        """
 
-        self.plan, self.planCost = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime, unplanned_agents)
-            # The task object will yield the pickup and dropoff locations
+        self.plan, self.planCost = whca_search(self.currentState, self.task,
+                                               self.task.trueHeurDrop,
+                                               reserv_table, currentTime)
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
 
     def reserveState(self, reserv_table):
         print(len(self.path))
 
-    # This function assigns a task to the agent
     def assignTask(self, newTask):
+        """
+        Assigns a task to the agent
+        """
         self.task = newTask
 
-    # This function will help move the agent (not necessary if we are using states instead of actions to define plan)
     def moveAgent(self, action):
+        """
+        This function will help move the agent (not necessary if we are using
+        states instead of actions to define plan)
+
+        """
         if action == 'u':
             self.currentState[1] = self.currentState[1] - 1
         elif action == 'd':
@@ -81,13 +98,15 @@ class Agent:
 
         return True         # If nothing went wrong, return True
 
-    # This is an alternative move function that simply updates the state the agent is in while appending the new state to the path
     def updateCurrentState(self, reserv_table):
+        """
+        Moves the agent to the next state in plan and adds this state to the path
+        """
         self.timestep += 1
         if _DEBUG:
             print("Agent {} current plan: {}".format(self._id, self.plan))
         try:
-            self.currentState = self.plan[0]  # Get the next immediate step of the plan (and remove it from the plan)
+            self.currentState = self.plan[0]
         except IndexError:
             self.currentState = self.path[-1][:2] + (self.timestep,)
 
@@ -97,26 +116,26 @@ class Agent:
             if _DEBUG:
                 print("Agent {} task:".format(self._id, self.task))
             if not self.isAgentIdle():
-                # print("Agent {} task status: {}".format(self._id, self.task.getTaskStatus()))
                 self.task.progressStatus()
                 self.assignTask(None)
                 self.plan = None
         self.path.append(self.currentState)  # Append the step to the path
-        # Check to see if we reached the goal, if so, remove task from agent and add to report
 
-
+        # If the Agent is not idle, update the timer associated with the task
         if not self.isAgentIdle():
-            # If the Agent is not idle, update the timer associated with the task
             self.task.tickTimer()
 
-    # Function to see if the agent is considered 'idle' and taskless
     def isAgentIdle(self):
+        """
+        Returns True if the agent is considered 'idle' and taskless
+        """
         return self.task == None
 
-    # Function to return whether the agent is done
     def isTaskComplete(self):
-        taskStatus = self.task.getTaskStatus()
-        return taskStatus == "complete"
+        """
+        Returns True if the agent is done with it's task
+        """
+        return self.task.getTaskStatus() == "complete"
 
     ###############################################
     ############# Getters and Setters #############
@@ -124,5 +143,6 @@ class Agent:
 
     def getPlan(self):
         return self.plan
+
     def getPath(self):
         return self.path

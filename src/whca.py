@@ -4,8 +4,8 @@
 """
 File: whca.py
 Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
-Email:
-Github:
+Emails: <taylormaxwelker@gmail.com>,  <cadeparkison@gmail.com>, <wadspau2@gmail.com>
+Githubs: welkerCode, c-park
 Description:
 """
 
@@ -24,7 +24,7 @@ _DEBUG = False
 _DEBUG_END = False
 
 
-def whca_search(currentState, task, trueHeur, reserv_table, currentTime, unplanned_agents):
+def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
     '''
     map             - environment map.  Needed to obtain the manhattan heuristic?
     currentState    - the state the agent is currently at
@@ -77,7 +77,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime, unplann
             print('popped = {}'.format(n_i.state))
             print('visited = {}'.format(visited))
         for a in n_i.actions:
-            s_prime, cost = f(n_i.state, a, unplanned_agents)
+            s_prime, cost = f(n_i.state, a)
             cost_spent = n_i.cost + cost # g(s_prime)
             n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
             h = trueHeur.get(s_prime[:2])
@@ -100,14 +100,18 @@ def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict
     init_state - value of the initial state
     f - transition function takes input state (s), action (a), returns s_prime = f(s, a)
         returns s if action is not valid, designed by Paul and found in transition.py
-    is_goal - takes state as input returns true if it is a goal state.  In this case, the goal state is if we find the node we want the heuristic for
+    is_goal - takes state as input returns true if it is a goal state.
+              In this case, the goal state is if we find the node we want the
+              heuristic for
     actions - list of actions available
-    h - heuristic function, takes input s and returns estimated cost, must be manhattan heuristic in this case
+    h - heuristic function, takes input s and returns estimated cost,
+        must be manhattan heuristic in this case
     '''
     '''
-    None of the following are necessary because the frontier and visited variables will be set up prior to this search
-    The frontier should be given the goal with a cost of 0 as init_state and stored in frontier.  The visited List
-    should just be initialized
+    None of the following are necessary because the frontier and visited
+    variables will be set up prior to this search
+    The frontier should be given the goal with a cost of 0 as init_state and
+    stored in frontier.  The visited List should just be initialized
 
     cost = 0
     n0 = SearchNode(init_state, actions, cost=cost)
@@ -130,7 +134,8 @@ def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict
         trueHeurDict[n_i.state] = n_i.cost
 
 
-        # Add to the revFrontier before checking the goal.  This will allow us to resume from our current location if we choose to return
+        # Add to the revFrontier before checking the goal.  This will allow us
+        # to resume from our current location if we choose to return
         for a in n_i.actions:
             (s_prime, action_cost) = f(n_i.state, a)
             # Add the cost to get here to the previous nodes cost for the true cost to
@@ -161,7 +166,3 @@ def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict
         print 'No goal found'
     return None
 
-'''
-keep the original tranistion function for the reverse search.  Make it a member of the task class?
-
-'''

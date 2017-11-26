@@ -4,25 +4,23 @@
 """
 File: reserv_table.py
 Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
-Email:
-Github:
-Description:
+Emails: <taylormaxwelker@gmail.com>,  <cadeparkison@gmail.com>, <wadspau2@gmail.com>
+Githubs: welkerCode, c-park
+Description: Reservation Table class that holds reserved states in Space-Time
 """
 
 from itertools import groupby
 
 class Reserv_Table:
     '''
-    The reservation table is a dictionary of dictionaries.  The outer dictionary uses x values as the key to accessing
-    y values and their occupation status over time.  The inner dictionary uses the y values as the key, and they yield
-    another dictionary.  This dictionary uses the timestep as the key, and the occupation status of that position at the
-    desired timestep is returned
+    The reservation table is a dictionary of dictionaries. The outer dictionary
+    uses X values as the key to accessing Y values and their occupation status
+    over time. The inner dictionary uses the Y values as the key, and they yield
+    another dictionary. This dictionary uses the timestep as the key, and the
+    occupation status of that position at the desired timestep is returned
     '''
 
-    res_table = {}
-
     def __init__(self, occupancyGrid = [], rows = 0, cols = 0):
-
         self.res_table = {}
         self.staticObstacle = {}
         self.rows = rows
@@ -32,50 +30,70 @@ class Reserv_Table:
                 if occupancyGrid[r][c] == True:
                     self.staticObstacle[(r,c)] = True
 
-        '''
-        self.res_table = {}                     # Create the outer dictionary
-        for i in range(0, env_x, 1):            # For all of the x's in the environment
-            d = {}                              # Create a second dictionary for each y
-            for j in range(0, env_y, 1):        # For all of the y's in the environment
-                d[j] = {0 : occupancyGrid[2]}   # Fill the second dictionary with the third dictionary (1 = obstacle)
-            self.res_table[i] = d               # Tie three dictionaries together
-        '''
+    def display(self, env):
+        """
+        Prints a formatted version of the reservation table at each timestep
+        """
+        sorted_keys = sorted(self.res_table.iterkeys(), key = lambda x: x[2])
 
+        time_steps = [list(j) for i, j in groupby(sorted_keys, key=lambda x:x[2])]
 
-    # Simply prints the table.  Might be good to format for easy debugging?
-    def showTable(self):
-        print(self.res_table)
+        print('\nReservation Table:')
+        for t in range(len(time_steps)):
+            table = ''
+            for i in range(env.rows):
+                row = ''
+                for j in range(env.cols):
+                    if (i,j,t) in time_steps[t]:
+                        row+='x'
+                    else:
+                        row+='0'
+                table += row
+                table += '\n'
+            print('------------')
+            print('Timestep: {}\n'.format(t))
+            print(table)
 
     def checkStateResv(self, state, time):
+        """
+        Returns True if state is reserved in table
+        """
         return self.res_table.has_key([state[0], state[1], time])
 
     def resvState(self, state):
+        """
+        Reserves a single state in table
+        """
         self.res_table[state] = True
 
-    # A function to reservePaths in table
     def resvPath(self, pathList, init_timestep):
+        """
+        Reserves Paths in table
+        """
         currentTimestep = init_timestep
         for time, state in enumerate(pathList):
             self.res_table[(state[0], state[1], time+currentTimestep)] = True
             self.res_table[(state[0], state[1], time+currentTimestep+1)] = True
 
     def resvAgentInit(self, agents):
+        """
+        Reserves agents initial state in table
+        """
         for agent in agents:
             self.res_table[agent.currentState[0], agent.currentState[1], 0] = True
             self.res_table[agent.currentState[0], agent.currentState[1], 1] = True
 
 
-    # This is Paul's updated 3D transition function
-    def transition3D(self, s, a, unplanned_agents):
+    def transition3D(self, s, a):
         '''
         Transition function for the current grid map.
 
         s - tuple describing the state as (row, col, t) position in the reservation table.
         a - the action to be performed from state s
 
-        returns - s_prime (row', col', t+1), the state transitioned to by taking action a in state s.
-        If the action is not valid (e.g. moves off the grid or into an obstacle)
-        returns the current state with t+1.
+        returns - s_prime (row', col', t+1), the state transitioned to by taking
+        action a in state s. If the action is not valid (e.g. moves off the grid
+        or into an obstacle) returns the current state with t+1.
         '''
         new_pos = list(s[:])
         _COL = 1  # Index of s for col
@@ -142,28 +160,19 @@ class Reserv_Table:
             cost = 0.5
 
         # Test if new position is clear in reservation table
-        elif self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t])) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] - 1)) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] + 1)):  # Fix RES_TABLE reference
-            s_prime = (s[_ROW], s[_COL], new_pos[_t])
-            #s_prime = tuple(new_pos)
-            cost = 1
+        elif (self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t]))
+              or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] - 1))
+              or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] + 1))):
 
-        elif tuple(new_pos[:2]) in unplanned_agents:
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
-            cost = 0.5
+            cost = 1
 
         # If position is free
         else:
             s_prime = (new_pos[_ROW], new_pos[_COL], new_pos[_t])   # s_prime will be the new state
 
-        if new_pos == [2,0,9]:
-            print('\nIn collision: {}'.format(self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t]))))
-
-            print('Action {} from {} will cause collision at (2,0,9)'.format(a, s))
-            print('New State: {} at cost: {}\n'.format(s_prime, cost))
         return s_prime, cost
 
-
-    # This is the original transition function from the gridmap class
     def transition2D(self, s, a):
         '''
         Transition function for the current grid map.
@@ -229,33 +238,3 @@ class Reserv_Table:
             s_prime = tuple(new_pos)
         return s_prime
 
-    def display(self, env):
-        sorted_keys = sorted(self.res_table.iterkeys(), key = lambda x: x[2])
-
-        time_steps = [list(j) for i, j in groupby(sorted_keys, key=lambda x:x[2])]
-
-        print('\nReservation Table:')
-        for t in range(len(time_steps)):
-            table = ''
-            for i in range(env.rows):
-                row = ''
-                for j in range(env.cols):
-                    if (i,j,t) in time_steps[t]:
-                        row+='x'
-                    else:
-                        row+='0'
-                table += row
-                table += '\n'
-            print('------------')
-            print('Timestep: {}\n'.format(t))
-            print(table)
-
-
-'''
-List of static obstacle locations
-occupancy grid during initialization makes the list above
-every new timestep requires going through the obstacle location list and adding reservations very first thing.
-if a reservation is made, it will exist in the dictionary.  To check if a state has been reserved, simply search the dictionary using the state as a key.  If it exists already, then the state has been reserved, otherwise it must be open, and can be reserved
-Transition function may be an element of this class.  The transition function checks the reservation table to make sure no collisions occur using the method above
-
-'''

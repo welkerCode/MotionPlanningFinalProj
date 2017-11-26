@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+File: task.py
+Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
+Emails: <taylormaxwelker@gmail.com>,  <cadeparkison@gmail.com>, <wadspau2@gmail.com>
+Githubs: welkerCode, c-park
+Description: Implements Task Class
+"""
+
 from global_utility import bfs_search_map
 from global_utility import _ACTIONS
 from reserv_table import Reserv_Table
@@ -22,7 +33,8 @@ class Task:
     ###############################################
 
     # Initialization function
-    def __init__(self, newId, newPickupState=None, newDropoffState=None, newTaskStatus = "dropoff", res_table = None):
+    def __init__(self, newId, newPickupState=None, newDropoffState=None,
+                 newTaskStatus = "dropoff", res_table = None):
         self.taskId = newId                 # Get the id of the task
         self.pickupState = newPickupState   # Get the pickup location
         self.dropoffState = newDropoffState # Get the dropoff location
@@ -32,7 +44,8 @@ class Task:
         Add code for trueHeur dropoff
         Add code for trueHeur pickup
         '''
-        self.trueHeurDrop = bfs_search_map(self.dropoffState, res_table.transition2D, _ACTIONS)
+        self.trueHeurDrop = bfs_search_map(self.dropoffState,
+                                           res_table.transition2D, _ACTIONS)
 
     # This function progresses the status of the task by one step
     def progressStatus(self):
@@ -75,9 +88,12 @@ class Task:
     '''
 
     '''
-    Every time a new task initializes, run the whca_reverse search to find the true heuristic for every node in the map
-        given the new dropoff location
-    This dictionary of true heurisitcs will be stored as a member of the task class and will be accessed by the whca_search algorithm
-    Our reasons for doing this is to eliminate the need for a paused reverse search and to find the true heuristic of each node upfront.
-    This means that the forward whca search will never call the reverse search directly.  Instead, every possible heuristic will already be calculated and stored in the task passed to it.
+    Every time a new task initializes, run the whca_reverse search to find the
+    true heuristic for every node in the map given the new dropoff location
+    This dictionary of true heurisitcs will be stored as a member of the task
+    class and will be accessed by the whca_search algorithm. Our reasons for
+    doing this is to eliminate the need for a paused reverse search and to find
+    the true heuristic of each node upfront. This means that the forward whca
+    search will never call the reverse search directly.  Instead, every possible
+    heuristic will already be calculated and stored in the task passed to it.
     '''

@@ -4,25 +4,20 @@
 """
 File: global_utility.py
 Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
-Email:
-Github:
-Description:
+Emails: <taylormaxwelker@gmail.com>,  <cadeparkison@gmail.com>, <wadspau2@gmail.com>
+Githubs: welkerCode, c-park
+Description: Utility functions to be used in other modules
 """
 
 import numpy as np
 
 _ACTIONS = ['u', 'd', 'l', 'r']
 
-def genRandEndpoint(endpoints, refPoint=None):
-    endListLen = len(endpoints)
-    endpoint = refPoint
-    while refPoint == endpoint:
-        endpointIndex = np.random.randint(0, endListLen - 1)
-        endpoint = endpoints[endpointIndex]
-    return endpoint
-
-
 def assignTasks(tasks, agents):
+    """
+    Given agent list and task list, assigns tasks to agents based on distance
+    to task
+    """
     for task in tasks:
         shortestDistance = 100000000
         agentToAssign = None
