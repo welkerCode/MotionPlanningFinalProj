@@ -35,6 +35,7 @@ class Agent:
     def __init__(self, _id,  initPos = (0,0), newTask = None):
         self._id = _id
         self.plan = None  # This holds the future actions that the planning algorithm will give the agent
+        self.planCost = 0
         self.path = []  # This holds the paths that the agent has taken thus far.
         self.trueHeur = {}  # This holds the dictionary matching a state to a true heuristic
         self.currentState = (initPos[0], initPos[1], 0)   # This holds the current state the agent is in
@@ -51,7 +52,7 @@ class Agent:
     def planPath(self, reserv_table, unplanned_agents, currentTime):
         # Maybe include a function here to remove old states from the reservation table associated with the old plan
 
-        self.plan = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime, unplanned_agents)
+        self.plan, self.planCost = whca_search(self.currentState, self.task, self.task.trueHeurDrop, reserv_table, currentTime, unplanned_agents)
             # The task object will yield the pickup and dropoff locations
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan

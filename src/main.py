@@ -115,6 +115,7 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
 
     reserv_table.resvAgentInit(agents)
     unplanned_agents = [agent.currentState[:2] for agent in agents]
+    planned_agents = []
 
     ### ACTION ###
     while not agentsDone:
@@ -123,17 +124,31 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
                 if not agent.isAgentIdle():
                     if _DEBUG:
                         print("\nPlanning agent {}...".format(agent._id))
+                        print("-------------------")
                     agent.planPath(reserv_table, unplanned_agents, global_timestep)
+
+                    # reserve n=10 paths to stay put
+                    for i in range(10):
+                        next_state = agent.plan[-1][:2] + (agent.plan[-1][2] + i,)
+                        # print('reserving: {}'.format(next_state))
+                        reserv_table.resvState(next_state)
+
                     unplanned_agents.remove(agent.currentState[:2])
                     if _DEBUG:
                         print("\nAgent {} Plan: {}".format(agent._id, agent.plan))
+                        print("\nAgent {} Plan Cost: {}".format(agent._id, agent.planCost))
+                        print('Reserved: {}'.format(reserv_table.res_table.keys()))
                     # Add path to res_table
                 else:
                     # plan mini path to stay put
                     # Add path to res_table
                     next_state = agent.currentState[:2] + (agent.currentState[2] + 1,)
                     agent.plan = [next_state]
+                    # print('reserving state: {}'.format(next_state))
                     reserv_table.resvState(next_state)
+                    # print('reserved: {}'.format(reserv_table.res_table.has_key(next_state)))
+            # else:
+            #     print("agent {} has no plan".format(agent._id))
 
         incrementTimestep(agents, reserv_table)
         global_timestep += 1
@@ -155,7 +170,7 @@ def main(env, n_agents, random_tasks=True, agent_list=None, task_list=None):
         for i,agent in enumerate(agents):
             print("Agent {}: {}".format(i, agent.getPath()))
 
-    env.display_map(agentPaths, record=False)
+    env.display_map(agentPaths, record=True)
 
 
 if __name__ == "__main__":
@@ -182,9 +197,10 @@ if __name__ == "__main__":
     # test_agent_ep = [-3,3]
     # test_task_ep = [2,-4]
 
-    #
-    # test_agent_ep = [-3,3,1]
-    # test_task_ep = [2,-4,-2]
+
+    # Failed
+    # test_agent_ep = [-1,3,5]
+    # test_task_ep = [4,6,2]
 
     # main('env_trial2.txt', 3, random_tasks=False, agent_list=test_agent_ep, task_list=test_task_ep)
 

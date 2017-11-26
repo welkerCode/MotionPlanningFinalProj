@@ -144,7 +144,8 @@ class Reserv_Table:
         # Test if new position is clear in reservation table
         elif self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t])) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] - 1)) or self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t] + 1)):  # Fix RES_TABLE reference
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
-            cost = 0.5
+            #s_prime = tuple(new_pos)
+            cost = 1
 
         elif tuple(new_pos[:2]) in unplanned_agents:
             s_prime = (s[_ROW], s[_COL], new_pos[_t])
@@ -153,6 +154,12 @@ class Reserv_Table:
         # If position is free
         else:
             s_prime = (new_pos[_ROW], new_pos[_COL], new_pos[_t])   # s_prime will be the new state
+
+        if new_pos == [2,0,9]:
+            print('\nIn collision: {}'.format(self.res_table.has_key((new_pos[_ROW], new_pos[_COL], new_pos[_t]))))
+
+            print('Action {} from {} will cause collision at (2,0,9)'.format(a, s))
+            print('New State: {} at cost: {}\n'.format(s_prime, cost))
         return s_prime, cost
 
 

@@ -158,7 +158,7 @@ class GridMap:
 
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
-                                        frames=15,        # animation frames
+                                        frames=35,        # animation frames
                                         interval=1000,    # time between frames (ms)
                                         repeat=False,
                                         blit=True)

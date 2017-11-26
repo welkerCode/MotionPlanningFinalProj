@@ -71,7 +71,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime, unplann
             reserv_table.resvPath(path, currentTime)
             if _DEBUG:
                 print(path)
-            return path
+            return path, n_i.cost
         visited[n_i.state] = n_i.cost
         if _DEBUG:
             print('popped = {}'.format(n_i.state))
