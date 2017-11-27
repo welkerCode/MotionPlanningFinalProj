@@ -18,6 +18,8 @@ from reserv_table import *
 from env import GridMap
 from global_utility import assignTasks
 from global_utility import incrementTimestep
+from global_utility import bfs_endpoints
+from global_utility import _ACTIONS
 from agent import Agent
 from task import Task
 
@@ -144,6 +146,7 @@ def main(env, n_agents, agent_list=None, task_list=None):
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
     TaskIDGen = 0
     global_timestep = 0
+    artif_task_count = 0
 
     agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
                                       agent_list, task_list)
@@ -177,11 +180,12 @@ def main(env, n_agents, agent_list=None, task_list=None):
                         print("\nAgent {} Plan: {}".format(agent._id, agent.plan))
                         print("\nAgent {} Plan Cost: {}".format(agent._id, agent.planCost))
                 else:
-                    # plan mini path to stay put
-                    # Add path to res_table
+                     #plan mini path to stay put
+                     #Add path to res_table
                     next_state = agent.currentState[:2] + (agent.currentState[2] + 1,)
                     agent.plan = [next_state]
                     reserv_table.resvState(next_state)
+
 
             else:
                 print('Agent {} has plan'.format(agent._id))
@@ -191,20 +195,27 @@ def main(env, n_agents, agent_list=None, task_list=None):
 
                     next_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 1)
                     second_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 2)
-
-                    if next_state == True or second_state == True:
+                    third_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 3)
+                    if next_state == True or second_state == True or third_state == True:
                         print('Idle Agent {} will collide '.format(agent._id))
 
-                        # find good endpoint
                         # create task with different ID
                         # plan from currentState to task
 
-                        endpoint_index = env.endpoints.index(agent.currentState[:2])
-                        print(endpoint_index)
+                        #endpoint_index = env.endpoints.index(agent.currentState[:2])
+                        #print(endpoint_index)
 
-                        right = env.endpoints[endpoint_index + 1]
-                        left = env.endpoints[endpoint_index - 1]
+#                        right = env.endpoints[endpoint_index + 1]
+ #                       left = env.endpoints[endpoint_index - 1]
 
+                        dest_end = bfs_endpoints(agent.currentState[:2], reserv_table.transition2D, _ACTIONS,
+                                                 env.endpoints, tasks, agents)
+                        print(dest_end)
+                        relocateTask = Task('a{}'.format(artif_task_count), None, dest_end, "dropoff", reserv_table)
+                        agent.assignTask(relocateTask)
+                        agent.planPath(reserv_table, global_timestep)
+                        artif_task_count += 1
+                        # find good endpoint
 
 
 
@@ -230,9 +241,10 @@ def main(env, n_agents, agent_list=None, task_list=None):
     env.display_map(agentPaths, record=False)
 
 if __name__ == "__main__":
-    # env = sys.argv[1]
-    # n_agents = int(sys.argv[2])
-    # main(env, n_agents)
+    env = sys.argv[1]
+    n_agents = int(sys.argv[2])
+    main(env, n_agents)
+
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
@@ -271,10 +283,10 @@ if __name__ == "__main__":
     # Env_warehouse2 Testing
     ######################
 
-    test_agent_ep = [-5,-4]
-    test_task_ep = [-1,-3]
+    #test_agent_ep = [-5,-4]
+    #test_task_ep = [-1,-3]
 
     #######################
 
-    main('env_small_warehouse.txt', 2, agent_list=test_agent_ep, task_list=test_task_ep)
+    #main('env_small_warehouse.txt', 2, agent_list=test_agent_ep, task_list=test_task_ep)
 

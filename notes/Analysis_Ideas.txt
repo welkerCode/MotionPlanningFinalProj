@@ -1,0 +1,34 @@
+Local Repair A* (Cooperative Path finding)
+	Run A* for all agents
+	Iterate through, moving them
+	If collide, then path around each other
+	Plan detour as opposed to a replan
+	About to move to the next state, check collisions
+	
+	Heirarchal Cooperative aca*
+		Reverse A* comes
+	
+
+Windowed Version of ACA
+	Reverse planning is limited to 
+	Plans 10, after moving half, replan
+	Allows agents to not have as strong of prioirity
+
+
+Regret Analysis
+	Bidding war when assigning tasks
+	Assign tasks after certain time steps
+	Will the agents be moving while other agents being planned?
+
+True distance NOT, use basic manhattan distance.instead
+	Replace true heur with manhattan
+
+Lifelong
+	Outer loop in main that reruns the path finding
+		Depends on list of tasks
+		Slowly plans, and something to add tasks to that list
+		Init set, hand out every few timesteps, and add to the list if we need to make it longer.
+	Task assigned over time
+
+Pickup + Dropoff
+	

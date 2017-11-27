@@ -196,8 +196,8 @@ class GridMap:
                         pass
                 except IndexError:
                     # if at end of path, agent stays.
-                    cirle.center = paths[j][-1]
-                    numbers[j].set_position((paths[j][-1][0]+self.x_offsest,
+                    circle.center = paths[j][-1]
+                    numbers[j].set_position((paths[j][-1][0]+self.x_offset,
                                              paths[j][-1][1]+self.y_offset))
 
             return circles + numbers

@@ -75,6 +75,7 @@ class Agent:
         """
         Assigns a task to the agent
         """
+        self.plan = None
         self.task = newTask
 
     def moveAgent(self, action):
@@ -106,20 +107,21 @@ class Agent:
         if _DEBUG:
             print("Agent {} current plan: {}".format(self._id, self.plan))
         try:
-            self.currentState = self.plan[0]
+            if self.plan is not None:
+                self.currentState = self.plan[0]
         except IndexError:
             self.currentState = self.path[-1][:2] + (self.timestep,)
-
-        self.plan = self.plan[1:]
-        if len(self.plan) == 0:
-            reserv_table.resvState(self.currentState)
-            if _DEBUG:
-                print("Agent {} task:".format(self._id, self.task))
-            if not self.isAgentIdle():
-                self.task.progressStatus()
-                self.assignTask(None)
-                self.plan = None
-        self.path.append(self.currentState)  # Append the step to the path
+        if self.plan is not None:
+            self.plan = self.plan[1:]
+            if len(self.plan) == 0:
+                reserv_table.resvState(self.currentState)
+                if _DEBUG:
+                    print("Agent {} task:".format(self._id, self.task))
+                if not self.isAgentIdle():
+                    self.task.progressStatus()
+                    self.assignTask(None)
+                    self.plan = None
+            self.path.append(self.currentState)  # Append the step to the path
 
         # If the Agent is not idle, update the timer associated with the task
         if not self.isAgentIdle():

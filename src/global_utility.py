@@ -96,6 +96,52 @@ def bfs_search_map(init_state, f, actions):
                 trueHeurDict[s_prime] = new_cost
     return trueHeurDict
 
+def bfs_endpoints(init_state, f, actions, endpoints, tasks, agents):
+    '''
+    Perform breadth first search on a grid map.
+
+    init_state - the intial state on the map
+    f - transition function of the form s_prime = f(s,a)
+    is_goal - function taking as input a state s and returning True if its a goal state
+    actions - set of actions which can be taken by the agent
+
+    returns - ((path, action_path), visited) of None if no path can be found
+    path - a list of tuples. The first element is the initial state followed by all states
+    traversed until the final goal state
+    action_path - the actions taken to transition from the initial state to goal state
+    '''
+
+    from node import SearchNode
+
+    cost = 0
+    n0 = SearchNode(init_state, actions, cost=cost)
+    Q = [n0]  # Search queue
+    visited = set()
+    visited.add(init_state)
+    while len(Q) > 0:
+        n_i = Q.pop(0)
+        if n_i.state in endpoints:
+            # Check to see if endpoint is available
+            available = True
+            for task in tasks:
+                if task.getDropoff() == n_i.state:
+                    available = False
+            for agent in agents:
+                if agent.plan is not None:
+                    new_plan = [state[:2] for state in agent.plan]
+                    if n_i.state in new_plan:
+                        available = False
+            if available:
+                return n_i.state
+
+        for a in n_i.actions:
+            s_prime = f(n_i.state, a)
+            new_cost = n_i.cost + 1
+            n_prime = SearchNode(s_prime, actions, n_i, a, new_cost)
+            if s_prime not in visited:
+                Q.append(n_prime)
+                visited.add(s_prime)
+    return None
 
 def a_star_search(init_state, f, is_goal, actions, h):
     '''

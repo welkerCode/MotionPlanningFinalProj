@@ -78,17 +78,18 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
             print('visited = {}'.format(visited))
         for a in n_i.actions:
             s_prime, cost = f(n_i.state, a)
-            cost_spent = n_i.cost + cost # g(s_prime)
-            n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
-            h = trueHeur.get(s_prime[:2])
+            if not reserv_table.checkStateResv(s_prime[:2], s_prime[2]):
+                cost_spent = n_i.cost + cost # g(s_prime)
+                n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
+                h = trueHeur.get(s_prime[:2])
 
-            # Add the heuristic for the combined cost-spent and cost-to-go
-            new_cost = cost_spent + h # f(s_prime)
-            if ((s_prime in visited and visited[s_prime] > cost_spent) or
-                (s_prime not in visited and s_prime not in frontier)):
-                frontier.push(n_prime, new_cost)
-            elif s_prime in frontier and new_cost < frontier.get_cost(n_prime):
-                frontier.replace(n_prime, new_cost)
+                # Add the heuristic for the combined cost-spent and cost-to-go
+                new_cost = cost_spent + h # f(s_prime)
+                if ((s_prime in visited and visited[s_prime] > cost_spent) or
+                    (s_prime not in visited and s_prime not in frontier)):
+                    frontier.push(n_prime, new_cost)
+                elif s_prime in frontier and new_cost < frontier.get_cost(n_prime):
+                    frontier.replace(n_prime, new_cost)
     if _DEBUG_END:
         print 'No goal found'
     return None
