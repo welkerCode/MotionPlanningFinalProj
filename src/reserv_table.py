@@ -58,7 +58,7 @@ class Reserv_Table:
         """
         Returns True if state is reserved in table
         """
-        return self.res_table.has_key([state[0], state[1], time])
+        return self.res_table.has_key((state[0], state[1], time))
 
     def resvState(self, state):
         """

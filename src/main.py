@@ -7,6 +7,11 @@ Authors: Taylor Welker, Cade Parkison, Paul Wadsworth
 Emails: <taylormaxwelker@gmail.com>,  <cadeparkison@gmail.com>, <wadspau2@gmail.com>
 Githubs: welkerCode, c-park
 Description: This is the program that needs to be run to execute our simulation
+
+    Can choose between various planning algorithms:
+        lra: Local Repair A*
+        hca: Hierarchical Cooperative A*
+        whca: Windowed Hierarchical Cooperative A*
 """
 
 from reserv_table import *
@@ -19,7 +24,7 @@ from task import Task
 import random
 import sys
 
-_DEBUG = False
+_DEBUG = True
 
 def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list):
     """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
@@ -59,6 +64,71 @@ def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list):
 
     return agents, tasks
 
+def plan_lra(arg1):
+    """TODO: Docstring for plan_lra.
+
+    :arg1: TODO
+    :returns: TODO
+
+    """
+    pass
+
+def plan_hca(agents, reserv_table):
+    """TODO: Docstring for plan_hca.
+
+    :agents: TODO
+    :reserv_table: TODO
+    :returns: TODO
+
+    """
+    global_timestep = 0
+
+    agentsDone = False
+    reserv_table.resvAgentInit(agents)
+
+    ### ACTION ###
+    while not agentsDone:
+        for agent in agents:
+            if agent.getPlan() is None:
+                if not agent.isAgentIdle():
+                    if _DEBUG:
+                        print("\nPlanning agent {}...".format(agent._id))
+                    agent.planPath(reserv_table, global_timestep)
+                    # reserve n=10 paths to stay put at goal position
+                    # for i in range(10):
+                    #     next_state = agent.plan[-1][:2] + (agent.plan[-1][2] + i,)
+                    #     reserv_table.resvState(next_state)
+
+                    if _DEBUG:
+                        print("\nAgent {} Plan: {}".format(agent._id, agent.plan))
+                        print("\nAgent {} Plan Cost: {}".format(agent._id, agent.planCost))
+                else:
+                    print("Agent {} is idle".format(agent._id))
+                    # plan mini path to stay put
+                    # Add path to res_table
+                    next_state = agent.currentState[:2] + (agent.currentState[2] + 1,)
+                    agent.plan = [next_state]
+                    reserv_table.resvState(next_state)
+
+        incrementTimestep(agents, reserv_table)
+        global_timestep += 1
+        print("timestep: {}".format(global_timestep))
+        agentDoneCount = 0
+        for agent in agents:
+            if agent.isAgentIdle():
+                agentDoneCount += 1
+        if agentDoneCount == len(agents):
+            agentsDone = True
+
+def plan_whca(arg1):
+    """TODO: Docstring for plan_whca.
+
+    :arg1: TODO
+    :returns: TODO
+
+    """
+    pass
+
 def main(env, n_agents, agent_list=None, task_list=None):
     """TODO: Docstring for main.
 
@@ -72,8 +142,8 @@ def main(env, n_agents, agent_list=None, task_list=None):
 
     env = GridMap('env_files/{}'.format(env))
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
-    global_timestep = 0
     TaskIDGen = 0
+    global_timestep = 0
 
     agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
                                       agent_list, task_list)
@@ -99,9 +169,9 @@ def main(env, n_agents, agent_list=None, task_list=None):
                         print("\nPlanning agent {}...".format(agent._id))
                     agent.planPath(reserv_table, global_timestep)
                     # reserve n=10 paths to stay put at goal position
-                    for i in range(10):
-                        next_state = agent.plan[-1][:2] + (agent.plan[-1][2] + i,)
-                        reserv_table.resvState(next_state)
+                    # for i in range(10):
+                    #     next_state = agent.plan[-1][:2] + (agent.plan[-1][2] + i,)
+                    #     reserv_table.resvState(next_state)
 
                     if _DEBUG:
                         print("\nAgent {} Plan: {}".format(agent._id, agent.plan))
@@ -113,8 +183,37 @@ def main(env, n_agents, agent_list=None, task_list=None):
                     agent.plan = [next_state]
                     reserv_table.resvState(next_state)
 
+            else:
+                print('Agent {} has plan'.format(agent._id))
+
+                if agent.isAgentIdle():
+                    print('Agent {} is idle'.format(agent._id))
+
+                    next_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 1)
+                    second_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 2)
+
+                    if next_state == True or second_state == True:
+                        print('Idle Agent {} will collide '.format(agent._id))
+
+                        # find good endpoint
+                        # create task with different ID
+                        # plan from currentState to task
+
+                        endpoint_index = env.endpoints.index(agent.currentState[:2])
+                        print(endpoint_index)
+
+                        right = env.endpoints[endpoint_index + 1]
+                        left = env.endpoints[endpoint_index - 1]
+
+
+
+
+
+
+
         incrementTimestep(agents, reserv_table)
         global_timestep += 1
+        print("\nTimestep: {}".format(global_timestep))
         agentDoneCount = 0
         for agent in agents:
             if agent.isAgentIdle():
@@ -131,9 +230,9 @@ def main(env, n_agents, agent_list=None, task_list=None):
     env.display_map(agentPaths, record=False)
 
 if __name__ == "__main__":
-    env = sys.argv[1]
-    n_agents = int(sys.argv[2])
-    main(env, n_agents)
+    # env = sys.argv[1]
+    # n_agents = int(sys.argv[2])
+    # main(env, n_agents)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
@@ -168,8 +267,14 @@ if __name__ == "__main__":
     # test_agent_ep = [-1,-26,23, 49]
     # test_task_ep = [71, 50,12, -27]
 
+    ######################
+    # Env_warehouse2 Testing
+    ######################
+
+    test_agent_ep = [-5,-4]
+    test_task_ep = [-1,-3]
 
     #######################
 
-    # main('env_trial2.txt', 3, agent_list=test_agent_ep, task_list=test_task_ep)
+    main('env_small_warehouse.txt', 2, agent_list=test_agent_ep, task_list=test_task_ep)
 
