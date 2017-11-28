@@ -131,7 +131,6 @@ def run_hca(agents, tasks,env, reserv_table, heuristic):
 
                         dest_end = bfs_endpoints(agent.currentState[:2], reserv_table.transition2D, _ACTIONS,
                                                  env.endpoints, tasks, agents)
-                        print(dest_end)
                         relocateTask = Task('a{}'.format(artif_task_count), None, dest_end, "dropoff", reserv_table)
                         agent.assignTask(relocateTask)
                         agent.planPath(reserv_table, global_timestep, heuristic)
@@ -158,7 +157,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
+def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=True):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -174,6 +173,8 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
     :n_agents: number of agent/task pairs to generate randomly
     :agent_list: if not random tasks, list of agent endpoint indexes
     :task_list: if not random tasks, list of task endpoint indexes
+
+    :Returns: Agent paths, task dropoff endpoints
 
     """
 
@@ -209,15 +210,19 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
         print("Creating Animation...")
 
     ### ANIMATE RESULTS ###
-    agentPaths = [agent.getPath() for agent in agents]
-    env.display_map(agentPaths, record=False)
+    agent_paths = [agent.getPath() for agent in agents]
+    agent_plans = [agent.getPlan() for agent in agents]
+    path_costs = [agent.planCost for agent in agents]
+    if animate:
+        env.display_map(agent_paths, record=False)
+
+    return agent_paths, agent_plans, path_costs
 
 if __name__ == "__main__":
     env = sys.argv[1]
     heur = sys.argv[2]
     n_agents = int(sys.argv[3])
     main(env,'hca', heur, n_agents)
-
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
