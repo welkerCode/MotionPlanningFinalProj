@@ -26,9 +26,9 @@ from task import Task
 import random
 import sys
 
-_DEBUG = True
+_DEBUG = False
 
-def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list):
+def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list, heuristic):
     """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
              If agent_list and task_list are None, generate n random agents and tasks
 
@@ -50,7 +50,7 @@ def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list):
             # generate random agent/task pair
             agent = Agent(i, samples.pop())
             task = Task(i, agent.currentState, samples.pop(),
-                        "dropoff", reserv_table)
+                        "dropoff", reserv_table, heuristic)
             agent.assignTask(task)
             agents.append(agent)
             tasks.append(task)
@@ -59,14 +59,14 @@ def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list):
         for i in range(n_agents):
             agent = Agent(i, env.endpoints[agent_list[i]])
             task = Task(i, agent.currentState, env.endpoints[task_list[i]],
-                        "dropoff", reserv_table)
+                        "dropoff", reserv_table, heuristic)
             agent.assignTask(task)
             agents.append(agent)
             tasks.append(task)
 
     return agents, tasks
 
-def plan_lra(arg1):
+def run_lra(agents, tasks, reserv_table, heuristic):
     """TODO: Docstring for plan_lra.
 
     :arg1: TODO
@@ -75,7 +75,7 @@ def plan_lra(arg1):
     """
     pass
 
-def plan_hca(agents, reserv_table):
+def run_hca(agents, tasks,env, reserv_table, heuristic):
     """TODO: Docstring for plan_hca.
 
     :agents: TODO
@@ -83,85 +83,10 @@ def plan_hca(agents, reserv_table):
     :returns: TODO
 
     """
-    global_timestep = 0
-
-    agentsDone = False
-    reserv_table.resvAgentInit(agents)
-
-    ### ACTION ###
-    while not agentsDone:
-        for agent in agents:
-            if agent.getPlan() is None:
-                if not agent.isAgentIdle():
-                    if _DEBUG:
-                        print("\nPlanning agent {}...".format(agent._id))
-                    agent.planPath(reserv_table, global_timestep)
-                    # reserve n=10 paths to stay put at goal position
-                    # for i in range(10):
-                    #     next_state = agent.plan[-1][:2] + (agent.plan[-1][2] + i,)
-                    #     reserv_table.resvState(next_state)
-
-                    if _DEBUG:
-                        print("\nAgent {} Plan: {}".format(agent._id, agent.plan))
-                        print("\nAgent {} Plan Cost: {}".format(agent._id, agent.planCost))
-                else:
-                    print("Agent {} is idle".format(agent._id))
-                    # plan mini path to stay put
-                    # Add path to res_table
-                    next_state = agent.currentState[:2] + (agent.currentState[2] + 1,)
-                    agent.plan = [next_state]
-                    reserv_table.resvState(next_state)
-
-        incrementTimestep(agents, reserv_table)
-        global_timestep += 1
-        print("timestep: {}".format(global_timestep))
-        agentDoneCount = 0
-        for agent in agents:
-            if agent.isAgentIdle():
-                agentDoneCount += 1
-        if agentDoneCount == len(agents):
-            agentsDone = True
-
-def plan_whca(arg1):
-    """TODO: Docstring for plan_whca.
-
-    :arg1: TODO
-    :returns: TODO
-
-    """
-    pass
-
-def main(env, n_agents, agent_list=None, task_list=None):
-    """TODO: Docstring for main.
-
-    :env: path to environment file
-    :n_agents: number of agent/task pairs to generate randomly
-    :agent_list: if not random tasks, list of agent endpoint indexes
-    :task_list: if not random tasks, list of task endpoint indexes
-    :returns: TODO
-
-    """
-
-    env = GridMap('env_files/{}'.format(env))
-    reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
     TaskIDGen = 0
     global_timestep = 0
     artif_task_count = 0
-
-    agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
-                                      agent_list, task_list)
-
-    if _DEBUG:
-        print("\nAgent Starts and Goals")
-        print("------------------------\n")
-
-        for i, agent in enumerate(agents):
-            print("Agent {}:".format(i))
-            print("\t Start: {}".format(agent.currentState))
-            print("\t Goal:   {}".format(agent.task.dropoffState))
-
     agentsDone = False
-    reserv_table.resvAgentInit(agents)
 
     ### ACTION ###
     while not agentsDone:
@@ -170,7 +95,7 @@ def main(env, n_agents, agent_list=None, task_list=None):
                 if not agent.isAgentIdle():
                     if _DEBUG:
                         print("\nPlanning agent {}...".format(agent._id))
-                    agent.planPath(reserv_table, global_timestep)
+                    agent.planPath(reserv_table, global_timestep, heuristic)
                     # reserve n=10 paths to stay put at goal position
                     # for i in range(10):
                     #     next_state = agent.plan[-1][:2] + (agent.plan[-1][2] + i,)
@@ -186,51 +111,98 @@ def main(env, n_agents, agent_list=None, task_list=None):
                     agent.plan = [next_state]
                     reserv_table.resvState(next_state)
 
-
             else:
-                print('Agent {} has plan'.format(agent._id))
 
                 if agent.isAgentIdle():
-                    print('Agent {} is idle'.format(agent._id))
 
                     next_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 1)
                     second_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 2)
                     third_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 3)
                     if next_state == True or second_state == True or third_state == True:
-                        print('Idle Agent {} will collide '.format(agent._id))
 
                         # create task with different ID
                         # plan from currentState to task
 
-                        #endpoint_index = env.endpoints.index(agent.currentState[:2])
-                        #print(endpoint_index)
+                        # endpoint_index = env.endpoints.index(agent.currentState[:2])
+                        # print(endpoint_index)
 
-#                        right = env.endpoints[endpoint_index + 1]
- #                       left = env.endpoints[endpoint_index - 1]
+                        # right = env.endpoints[endpoint_index + 1]
+                        # left = env.endpoints[endpoint_index - 1]
 
                         dest_end = bfs_endpoints(agent.currentState[:2], reserv_table.transition2D, _ACTIONS,
                                                  env.endpoints, tasks, agents)
                         print(dest_end)
                         relocateTask = Task('a{}'.format(artif_task_count), None, dest_end, "dropoff", reserv_table)
                         agent.assignTask(relocateTask)
-                        agent.planPath(reserv_table, global_timestep)
+                        agent.planPath(reserv_table, global_timestep, heuristic)
                         artif_task_count += 1
                         # find good endpoint
 
-
-
-
-
-
         incrementTimestep(agents, reserv_table)
         global_timestep += 1
-        print("\nTimestep: {}".format(global_timestep))
         agentDoneCount = 0
         for agent in agents:
             if agent.isAgentIdle():
                 agentDoneCount += 1
         if agentDoneCount == len(agents):
             agentsDone = True
+
+
+
+def run_whca(agents, tasks, reserv_table, heuristic):
+    """TODO: Docstring for plan_whca.
+
+    :arg1: TODO
+    :returns: TODO
+
+    """
+    pass
+
+def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
+    """TODO: Docstring for main.
+
+    :env: path to environment file
+    :alg: Type of planning algorithm to run
+            - 'lra': Local Repair A*
+            - 'hca': Hierarchical Cooperative A*
+            - 'whca': Windowed Hierarchical Cooperative A*
+
+    :heuristic: Type of heuristic to use for A*
+            - 'manhattan': manhattan distance
+            - 'true': True distane, found from BFS search
+
+    :n_agents: number of agent/task pairs to generate randomly
+    :agent_list: if not random tasks, list of agent endpoint indexes
+    :task_list: if not random tasks, list of task endpoint indexes
+
+    """
+
+    if alg == 'lra':
+        run_planner = run_lra
+    elif alg == 'hca':
+        run_planner = run_hca
+    elif alg == 'whca':
+        run_planner = run_whca
+
+    env = GridMap('env_files/{}'.format(env))
+    reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+
+    agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
+                                      agent_list, task_list, heuristic)
+
+    if _DEBUG:
+        print("\nAgent Starts and Goals")
+        print("------------------------\n")
+
+        for i, agent in enumerate(agents):
+            print("Agent {}:".format(i))
+            print("\t Start: {}".format(agent.currentState))
+            print("\t Goal:   {}".format(agent.task.dropoffState))
+
+    reserv_table.resvAgentInit(agents)
+
+    ### ACTION ###
+    run_planner(agents, tasks, env, reserv_table, heuristic)
 
     if _DEBUG:
         reserv_table.display(env)
@@ -242,8 +214,9 @@ def main(env, n_agents, agent_list=None, task_list=None):
 
 if __name__ == "__main__":
     env = sys.argv[1]
-    n_agents = int(sys.argv[2])
-    main(env, n_agents)
+    heur = sys.argv[2]
+    n_agents = int(sys.argv[3])
+    main(env,'hca', heur, n_agents)
 
 
     # Failed test 1
@@ -283,10 +256,10 @@ if __name__ == "__main__":
     # Env_warehouse2 Testing
     ######################
 
-    #test_agent_ep = [-5,-4]
-    #test_task_ep = [-1,-3]
+    #test_agent_ep = [-5, -4]
+    #test_task_ep = [-1, -3]
 
-    #######################
+    ########################
 
-    #main('env_small_warehouse.txt', 2, agent_list=test_agent_ep, task_list=test_task_ep)
+    # main('env_small_warehouse.txt','hca', sys.argv[1], len(test_agent_ep), agent_list=test_agent_ep, task_list=test_task_ep)
 

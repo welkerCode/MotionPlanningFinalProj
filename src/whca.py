@@ -13,6 +13,8 @@ Description:
 from node import SearchNode
 from priorityq import PriorityQ
 from global_utility import backpath
+from global_utility import manhattan_heuristic
+
 _ACTIONS = ['u','d','l','r','pause']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
 # _ACTION_1_COST =  {'u':1,'d':1,'l':1,'r':1,'pause':0.5}
@@ -24,7 +26,7 @@ _DEBUG = False
 _DEBUG_END = False
 
 
-def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
+def whca_search(currentState, task, trueHeur, reserv_table, currentTime, heuristic):
     '''
     map             - environment map.  Needed to obtain the manhattan heuristic?
     currentState    - the state the agent is currently at
@@ -32,6 +34,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
     revVisited      - the list that holds the states the reverse search has already searched
     revFrontier     - the PriorityQ that holds the frontier for the reverse search
     trueHeur        - a dictionary stored in the agent that holds the true heuristic for any node that it has searched for
+    heuristic       - either use trueHeur or manhattan_heuristic
     '''
 
     '''
@@ -81,8 +84,10 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime):
             if not reserv_table.checkStateResv(s_prime[:2], s_prime[2]):
                 cost_spent = n_i.cost + cost # g(s_prime)
                 n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
-                h = trueHeur.get(s_prime[:2])
-
+                if heuristic == 'true':
+                    h = trueHeur.get(s_prime[:2])
+                elif heuristic == 'manhattan':
+                    h = manhattan_heuristic(s_prime[:2], dropoffState)
                 # Add the heuristic for the combined cost-spent and cost-to-go
                 new_cost = cost_spent + h # f(s_prime)
                 if ((s_prime in visited and visited[s_prime] > cost_spent) or

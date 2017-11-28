@@ -55,7 +55,7 @@ class Agent:
         self.revVisited = None          # This is used to hold the list of nodes visited for the reverse search
 
 
-    def planPath(self, reserv_table, currentTime):
+    def planPath(self, reserv_table, currentTime, heuristic):
         """
         Plans a path for the agent
         Maybe include a function here to remove old states from the reservation
@@ -64,7 +64,7 @@ class Agent:
 
         self.plan, self.planCost = whca_search(self.currentState, self.task,
                                                self.task.trueHeurDrop,
-                                               reserv_table, currentTime)
+                                               reserv_table, currentTime, heuristic)
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
 

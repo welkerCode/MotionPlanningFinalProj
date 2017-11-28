@@ -39,7 +39,7 @@ _DEBUG = False
 _GOAL_COLOR = 0.45
 _INIT_COLOR = 0.25
 _ENDPOINT_COLOR = 0.4
-_COLORS = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+_COLORS = ['b', 'g', 'r', 'c', 'm', 'y']
 
 class GridMap:
     def __init__(self, map_path=None, use_cost=False):
@@ -58,8 +58,9 @@ class GridMap:
         self.use_costs = use_cost
         self.x_offset = 0      # default offset in x-dir for drawing agent IDs
         self.y_offset = 0      # default offset in y-dir for drawing agent IDs
-        self.id_size = 20       # default size of agent ID in animation
+        self.id_size = 20      # default size of agent ID in animation
         self.linewidth = 1     # default linewidth for drawing paths
+        self.interval = 40     # animation interval in ms
 
         if map_path is not None:
             self.read_map(map_path)
@@ -89,6 +90,14 @@ class GridMap:
             self.y_offset = 0.2
             self.id_size = 10
             self.linewidth = 1
+            self.interval = 40
+
+        elif map_path == 'env_files/env_small_warehouse.txt':
+            self.x_offset = -0.1
+            self.y_offset = 0.1
+            self.id_size = 20
+            self.linewidth = 1
+            self.interval = 40
 
         elif map_path == 'env_files/env_warehouse2.txt':
             pass
@@ -156,6 +165,18 @@ class GridMap:
             plt.plot(*zip(*path),ls='--',lw=self.linewidth,
                      color=_COLORS[i%len(_COLORS)])
 
+
+        # interpolate all paths for smooth animation
+        interp_paths = []
+        for path in paths:
+            interp_path = []
+            for i in range(len(path[:-1])):
+                x = np.linspace(path[i][0], path[i+1][0], 20)
+                y = np.linspace(path[i][1], path[i+1][1], 20)
+                interp = zip(x,y)
+                interp_path.extend(interp)
+            interp_paths.append(interp_path)
+
         def init():
             """
             Initializes agents to starting position
@@ -188,24 +209,24 @@ class GridMap:
                 # If not at end of path, move agent to next position.
                 try:
                     # if location is not 0, try to move forward.
-                    if paths[j][i]:
-                        circle.center = paths[j][i]
-                        numbers[j].set_position((paths[j][i][0]+self.x_offset,
-                                                 paths[j][i][1]+self.y_offset))
+                    if interp_paths[j][i]:
+                        circle.center = interp_paths[j][i]
+                        numbers[j].set_position((interp_paths[j][i][0]+self.x_offset,
+                                                 interp_paths[j][i][1]+self.y_offset))
                     else:
                         pass
                 except IndexError:
                     # if at end of path, agent stays.
-                    circle.center = paths[j][-1]
-                    numbers[j].set_position((paths[j][-1][0]+self.x_offset,
-                                             paths[j][-1][1]+self.y_offset))
+                    circle.center = interp_paths[j][-1]
+                    numbers[j].set_position((interp_paths[j][-1][0]+self.x_offset,
+                                             interp_paths[j][-1][1]+self.y_offset))
 
             return circles + numbers
 
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
-                                        frames=len(paths[0]),  # animation frames
-                                        interval=1000,          # time interval (ms)
+                                        frames=len(interp_paths[0]),  # animation frames
+                                        interval=40,          # time interval (ms)
                                         repeat=False,
                                         blit=True)
 

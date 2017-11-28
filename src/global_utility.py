@@ -194,16 +194,15 @@ def a_star_search(init_state, f, is_goal, actions, h):
 
 
 
-'''
-def manhattan_heuristic(self, s, desiredNode):
+def manhattan_heuristic(s, desiredNode):
 
+    """
     Euclidean heuristic function
 
     s - tuple describing the state as (row, col) position on the grid.
     desiredNode -
     returns - floating point estimate of the cost to the goal from state s
+    """
 
-
-    h = (fabs(s[0] - desiredNode[0]) + fabs(s[1] - desiredNode[1]))
+    h = (abs(s[0] - desiredNode[0]) + abs(s[1] - desiredNode[1]))
     return h
-'''
