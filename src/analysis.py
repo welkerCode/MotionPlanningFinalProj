@@ -36,11 +36,11 @@ def avg_path_distance(paths):
     :returns: average distance travelled
 
     """
-    distances = []
-    for path in paths:
-        # Ignores timestep, removes duplicate locations
-        unique_positions = set([p[:2] for p in path])
-        distances.append(len(unique_positions))
+    distances = [len(set([p[:2] for p in path]))-1 for path in paths]
+
+    for i,d in enumerate(distances):
+        print('Path {} distance: {}'.format(i,d))
+
     avg_distance = np.mean(distances)
 
     return avg_distance
@@ -52,7 +52,12 @@ def avg_path_time(plans):
     :path_costs: list of costs for each path taken
     :returns: time, distance, cost averages
     """
-    avg_time = np.mean([len(plan) for plan in plans])
+    path_times = [len(plan)-1 for plan in plans]
+
+    for i,t in enumerate(path_times):
+        print('Path {} time: {}'.format(i,t))
+
+    avg_time = np.mean(path_times)
 
     return avg_time
 
@@ -63,6 +68,9 @@ def avg_path_cost(path_costs):
     :returns: TODO
 
     """
+    for i,c in enumerate(path_costs):
+        print('Path {} cost: {}'.format(i,c))
+
     return np.mean(path_costs)
 
 def count_collisions(paths):
@@ -74,7 +82,7 @@ def count_collisions(paths):
     """
     pass
 
-def path_analysis(paths, plans, path_costs):
+def path_analysis(total_paths, goals, path_costs):
     """Given the results of path finding algorithm, print out analysis data to
        command line.
 
@@ -83,12 +91,18 @@ def path_analysis(paths, plans, path_costs):
     :returns: TODO
 
     """
+    # Removes 3rd time dimension
+    path_states = [[l[:2] for l in path] for path in total_paths]
+
+    # find paths to goals from total_paths
+    goal_indices = [path.index(goals[i]) for i, path in enumerate(path_states)]
+    paths_to_goals = [path[:goal_indices[i]+1] for i, path in enumerate(total_paths)]
 
     print('Analyzing paths...')
     print('---------------------\n')
-    print('Average Path Distance: {}'.format(avg_path_distance(paths)))
-    print('Average Path Time: {} timesteps'.format(avg_path_time(plans)))
-    print('Average Path Cost: {}'.format(avg_path_cost(path_costs)))
+    print('Average Path Distance: {}\n'.format(avg_path_distance(paths_to_goals)))
+    print('Average Path Time: {} timesteps\n'.format(avg_path_time(paths_to_goals)))
+    print('Average Path Cost: {}\n'.format(avg_path_cost(path_costs)))
 
 def failure_analysis(env, alg, heuristic, n_agents, agent_list, task_list, n_iterations):
     """Iterates over main path planning and calculates the number of failures
@@ -109,17 +123,31 @@ def failure_analysis(env, alg, heuristic, n_agents, agent_list, task_list, n_ite
 
 if __name__ == "__main__":
 
-    test_agent_ep = [-5, -4]
-    test_task_ep = [-1, -3]
+    env = sys.argv[1]
+    n_agents = int(sys.argv[2])
 
-    paths, plans, costs = main(env='env_small_warehouse.txt',
+    paths, goals, costs = main(env=env,
                                alg='hca',
                                heuristic='true',
-                               n_agents=len(test_agent_ep),
-                               agent_list=test_agent_ep,
-                               task_list=test_task_ep,
+                               n_agents=n_agents,
                                animate=True)
 
-    path_analysis(paths, plans, costs)
+    # test_agent_ep = [-5, -4]
+    # test_task_ep = [-1, -3]
+
+    # paths, goals, costs = main(env='env_small_warehouse.txt',
+    #                            alg='hca',
+    #                            heuristic='true',
+    #                            n_agents=len(test_agent_ep),
+    #                            agent_list=test_agent_ep,
+    #                            task_list=test_task_ep,
+                               # animate=True)
+
+    print("Paths: {}\n".format(paths))
+    print("Goals: {}\n".format(goals))
+    print("Costs: {}\n".format(costs))
+    print('')
+
+    path_analysis(paths, goals, costs)
 
 

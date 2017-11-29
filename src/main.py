@@ -157,7 +157,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=True):
+def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -190,6 +190,7 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=
 
     agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
                                       agent_list, task_list, heuristic)
+    task_goals = [agent.task.dropoffState for agent in agents]
 
     if _DEBUG:
         print("\nAgent Starts and Goals")
@@ -210,13 +211,12 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=
         print("Creating Animation...")
 
     ### ANIMATE RESULTS ###
-    agent_paths = [agent.getPath() for agent in agents]
-    agent_plans = [agent.getPlan() for agent in agents]
+    agent_paths = [agent.path for agent in agents]
     path_costs = [agent.planCost for agent in agents]
     if animate:
         env.display_map(agent_paths, record=False)
 
-    return agent_paths, agent_plans, path_costs
+    return agent_paths, task_goals, path_costs
 
 if __name__ == "__main__":
     env = sys.argv[1]
