@@ -20,6 +20,7 @@ TODO:
 
 import matplotlib.pyplot as plt
 import numpy as np
+from itertools import combinations
 import sys
 
 from main import *
@@ -80,7 +81,12 @@ def count_collisions(paths):
     :returns: TODO
 
     """
-    pass
+    collisions = 0
+    # for all combinations of two paths, add the number of collisions to total
+    for i,j in combinations(paths,2):
+        collisions += len(set(i).intersection(j))
+
+    return collisions
 
 def path_analysis(total_paths, goals, path_costs):
     """Given the results of path finding algorithm, print out analysis data to
@@ -129,8 +135,7 @@ if __name__ == "__main__":
     paths, goals, costs = main(env=env,
                                alg='hca',
                                heuristic='true',
-                               n_agents=n_agents,
-                               animate=True)
+                               n_agents=n_agents)
 
     # test_agent_ep = [-5, -4]
     # test_task_ep = [-1, -3]
@@ -140,8 +145,7 @@ if __name__ == "__main__":
     #                            heuristic='true',
     #                            n_agents=len(test_agent_ep),
     #                            agent_list=test_agent_ep,
-    #                            task_list=test_task_ep,
-                               # animate=True)
+    #                            task_list=test_task_ep)
 
     print("Paths: {}\n".format(paths))
     print("Goals: {}\n".format(goals))

@@ -22,7 +22,9 @@ from global_utility import bfs_endpoints
 from global_utility import _ACTIONS
 from agent import Agent
 from task import Task
+from analysis import *
 
+import matplotlib.pyplot as plt
 import random
 import sys
 
@@ -146,8 +148,6 @@ def run_hca(agents, tasks,env, reserv_table, heuristic):
         if agentDoneCount == len(agents):
             agentsDone = True
 
-
-
 def run_whca(agents, tasks, reserv_table, heuristic):
     """TODO: Docstring for plan_whca.
 
@@ -213,16 +213,16 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
     ### ANIMATE RESULTS ###
     agent_paths = [agent.path for agent in agents]
     path_costs = [agent.planCost for agent in agents]
-    if animate:
-        env.display_map(agent_paths, record=False)
+
+    env.display_map(agent_paths, record=False)
+    path_analysis(agent_paths, task_goals, path_costs)
 
     return agent_paths, task_goals, path_costs
 
 if __name__ == "__main__":
     env = sys.argv[1]
-    heur = sys.argv[2]
     n_agents = int(sys.argv[3])
-    main(env,'hca', heur, n_agents)
+    main(env,'hca', heuristic='true', n_agents=n_agents)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]

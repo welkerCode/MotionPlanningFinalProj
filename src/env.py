@@ -242,6 +242,7 @@ class GridMap:
 
         plt.show()
 
+
 def main(args):
     # test path of 4 agents, the zeros represent an agent waiting one time step
     test_paths = [[(1,1),0,0,0,0,(1,2),(2,2),(3,2)],
