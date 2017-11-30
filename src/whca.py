@@ -84,7 +84,7 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime, heurist
             if not reserv_table.checkStateResv(s_prime[:2], s_prime[2]):
                 cost_spent = n_i.cost + cost # g(s_prime)
                 n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
-                if heuristic == 'whca':
+                if heuristic == 'true':
                     h = trueHeur.get(s_prime[:2])
                 elif heuristic == 'manhattan':
                     h = manhattan_heuristic(s_prime[:2], dropoffState)
