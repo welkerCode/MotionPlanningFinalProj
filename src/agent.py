@@ -19,21 +19,6 @@ _DEBUG = False
 
 class Agent:
 
-    ###############################################
-    ############# Class Variables #################
-    ###############################################
-    '''
-    # Required class variables
-    currentState    # This will hold the current State (position + timeStep) that the agent is in
-    task            # This will hold the task assigned to the agent, if None, then the agent isn't busy.
-    trueHeur        # dictionary of nodes (key) and their true heuristic (cost/int) to the goal
-    plan            # Future movement, updated by the planning algorithm
-    path            # True movement of the agent, goes into the animator
-
-    # Allows us to pause the reverse search (if desired)
-    revFrontier     # PriorityQ of nodes
-    revVisited      # list of nodes
-    '''
 
     ###############################################
     ############# Class Functions #################
@@ -49,6 +34,7 @@ class Agent:
         self.path.append(self.currentState) # We need to add the initial state to our path
         self.task = newTask # This holds the task assigned to the agent.  If none, then the agent is 'idle'
         self.timestep = 0
+        self.taskCompetionTime = 0 # This holds the final timer value kept within the task when the task has been completed.  Used for regret analysis
 
         # In order to pause our reverse search for true heuristic, we need these two member variables
         self.revFrontier = PriorityQ()  # This is used to hold the frontier of the reverse search
@@ -124,6 +110,10 @@ class Agent:
                 if _DEBUG:
                     print("Agent {} task:".format(self._id, self.task))
                 if not self.isAgentIdle():
+                    # If it is not an artificial task, get the timer value
+                    #self.task.tickTimer()
+                    #if self.task.taskID[0] != 'a'
+                        #self.taskCompetionTime = self.task.getTimer()
                     self.task.progressStatus()
                     self.assignTask(None)
                     self.plan = None

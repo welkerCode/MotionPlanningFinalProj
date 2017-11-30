@@ -69,34 +69,6 @@ def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list, heuris
 
     return agents, tasks
 
-'''
-Task needs to be equipped with a initPrioirity
-
-Bidding war algorithm
-
-Create a list to hold tasks that haven't been assigned
-Create a list to hold tasks that have been assigned
-
-Until the unassigned task list is empty
-    Create a list to hold agents that have been sorted
-    Iterate through the list of agents
-        Sort the agents into a new list in order of initPrioirty to the task
-            Calculate the initDist
-    Until the list of sorted agents are empty and we don't have a valid agent
-        If the agent is claimed
-            Identify the task that claimed it (a function that iterates through the list of all assigned agents and returns the one)                
-            If the current task has a greater priority
-                Assign agent to this task instead
-                Remove priority of prev Task
-                Place prev task in the list of unassigned tasks
-                Place the current task in the list of assigned tasks
-        Else
-            Place the task in the list of assigned tasks
-            Set valid agent to true
-        remove the task from the sorted list (pop off the top).
-'''
-
-
 def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_list, heuristic):
     """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
              If agent_list and task_list are None, generate n random agents and tasks
@@ -110,6 +82,8 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
 
     """
 
+
+    # This first part is very similar to init_agent_tasks(), but doesn't assign tasks.
     if agent_list == None and task_list == None:
         agent_list = []
         task_list = []
@@ -132,54 +106,54 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
             agent_list.append(agent)
             task_list.append(task)
 
-    assignedAgents = []
-    assignedTasks = []
-    unassignedTasks = copy.deepcopy(task_list)
+
+    assignedAgents = [] # This list will hold the agents that have been assigned tasks
+    assignedTasks = []  # This list will hold the tasks that have been assigned an agent
+    unassignedTasks = copy.deepcopy(task_list)  # This list will hold the tasks that still need an agent
+
+    '''Bidding War Algorithm'''
+
+    # This is the largest while loop in the algorithm: until we have assigned all tasks have been assigned to an agent
     while len(unassignedTasks) > 0:
-        task = unassignedTasks[0]
-        sortedAgents = []
+        task = unassignedTasks[0]   # Get the next task
+        sortedAgents = []           # Create a list that holds agents according to the task's priority
+
+        # For every agent in the list
         for agent in agent_list:
-            initDist = task.trueHeurDrop[agent.currentState[:2]] # Calculate the initial distance between the task and the agent
-            #addToSortedList(agent, initDist)    # Add it to the list in sorted order
-            sortedAgents.append((initDist, agent))
-        # After all agents are in, sort the list
-        sortedAgents.sort()
+            initDist = task.trueHeurDrop[agent.currentState[:2]] # Get the initial distance between the task and the agent
+            sortedAgents.append((initDist, agent))               # Add that distance and agent as a tuple into the list to be sorted
+        sortedAgents.sort() # After all agents are in, sort the list according to their initDist
 
-        validAgent = False
+        validAgent = False  # This is a flag that allows us to break the next while loop when the task finds a valid agent
+
+        # Until the list of sorted agents are empty and we don't have a valid agent
         while len(sortedAgents) != 0 and validAgent == False:
-            currentAgent = sortedAgents[0][1]
-            if currentAgent in assignedAgents:
-                competingTask = currentAgent.task
-                if task.trueHeurDrop[currentAgent.currentState[:2]] < competingTask.trueHeurDrop[currentAgent.currentState[:2]]:
-                    currentAgent.assignTask(task)
-                    assignedTasks.remove(competingTask)
-                    assignedTasks.append(task)
-                    unassignedTasks.append(competingTask)
-                    validAgent = True
-                else:
-                    sortedAgents.pop(0)
-            else:
-                currentAgent.assignTask(task)
-                assignedAgents.append(currentAgent)
-                assignedTasks.append(task)
-                validAgent = True
-        unassignedTasks.pop(0)
-    return assignedAgents, assignedTasks
+            currentAgent = sortedAgents[0][1]       # Get the task's new favorite agent
+            if currentAgent in assignedAgents:      # If that agent has already been claimed
+                competingTask = currentAgent.task   # Get the task that claimed it
 
-'''
-    Until the list of sorted agents are empty and we don't have a valid agent
-        If the agent is claimed
-            Identify the task that claimed it (a function that iterates through the list of all assigned agents and returns the one)                
-            If the current task has a greater priority
-                Assign agent to this task instead
-                Remove priority of prev Task
-                Place prev task in the list of unassigned tasks
-                Place the current task in the list of assigned tasks
-        Else
-            Place the task in the list of assigned tasks
-            Set valid agent to true
-        remove the task from the sorted list (pop off the top).
-'''
+                # If the current task has a higher bid than the previous task
+                if task.trueHeurDrop[currentAgent.currentState[:2]] < competingTask.trueHeurDrop[currentAgent.currentState[:2]]:
+                    currentAgent.assignTask(task)           # Reassign the agent to this current task
+                    assignedTasks.remove(competingTask)     # Remove the previous task from the list of assigned tasks
+                    assignedTasks.append(task)              # Add the current task to the list of assigned tasks
+                    unassignedTasks.append(competingTask)   # Add the previous task to the list of unassigned tasks
+                    validAgent = True                       # Set the flag so we can escape this while loop
+
+                # Otherwise, if the previous task had the higher bid
+                else:
+                    sortedAgents.pop(0)                     # Remove this agent from our list of sorted agents and start again
+
+            # Otherwise, if the agent in question hasn't already been claimed
+            else:
+                currentAgent.assignTask(task)       # Assign the task to the agent
+                assignedAgents.append(currentAgent) # Add the agent to the list of assigned agents
+                assignedTasks.append(task)          # Add the task to the list of assigned tasks
+                validAgent = True                   # Set the flag so we can escape this while loop
+
+        unassignedTasks.pop(0)                      # Once we get here, we have assigned an agent to this task.  Now remove it from the list of unassigned tasks
+    return assignedAgents, assignedTasks            # In the end, return the list of assigned tasks and agents
+
 
 def run_lra(agents, tasks, reserv_table, heuristic):
     """TODO: Docstring for plan_lra.
@@ -338,7 +312,7 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
 
 if __name__ == "__main__":
     env = sys.argv[1]
-    n_agents = int(sys.argv[3])
+    n_agents = int(sys.argv[2])
     main(env,'hca', heuristic='true', n_agents=n_agents)
 
     # Failed test 1

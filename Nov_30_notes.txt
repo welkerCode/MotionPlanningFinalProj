@@ -1,0 +1,68 @@
+This bidding war algorithm allows me to assign tasks prematurely as the tasks are all known.
+
+Now, I want to assign the tasks one at a time every few timesteps
+
+(*)if time to assign a new task
+	Iterate through the list of agents.
+		if the agent is IDLE or has an artificial task:
+			Get the initial distance between task goal and agent
+			Put into a list to be sorted 
+	Sort the list of IDLE agents according to initDist
+	Choose the agent at the top of the list and assign the task to it
+
+
+In the larger scheme
+
+(**)run_regret(orig_list_of_agents,orig_list_of_tasks,reserv_table, heur, list_of_agents_with_ideal_tasks)
+
+	run_planner twice:
+	- once with all the tasks known ahead of time = baseline
+	- once where the tasks are assigned in the order they come in.
+	
+
+	(***)With all the tasks known ahead of time = current setup.  All start moving at the same time
+	Print animation and store average path length
+
+	(****)Where the tasks are assigned in the order they come in
+
+	While the unassignedTask list is not empty and the agents are not done
+		if globalTimestep % frequency = 0, then it is time to add a task
+			Get the next task			
+			Run the code at (*)
+			Remove the task from the 
+			agentsDone = False
+		for agent in agents:
+			Execute the remaining code
+
+	Print animation and store average path length
+
+	Calculate regret and print
+		Regret = average path length assigned one at a time / average path length known beforehand
+		
+
+	**Here is the tricky question.  How do we calculate average path length, and can we modify it just to include the path from starting position, or from task received to task delivered?
+
+	OH! We can use the task timer!  That is exactly why I installed it!  The timer starts when the agent has been assigned, and ends when the agent drops it off.
+	
+
+
+in main
+
+get alg
+
+get en and reserv table
+
+
+if regret == True
+	create another copy of the environment, and a new reservation table with the same rserve initial agents
+
+	original_list_of_tasks, assigned_agents, agent_list_without_assignation_copy = 	init_agents_tasks_with_regret()
+	
+	
+	run baseline (***)
+	run regretversion (****)
+
+	get pathlength
+	get timer
+	calculate regret
+
