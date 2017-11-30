@@ -62,9 +62,15 @@ class Agent:
         table associated with the old plan
         """
 
-        self.plan, self.planCost = whca_search(self.currentState, self.task,
-                                               self.task.trueHeurDrop,
-                                               reserv_table, currentTime, heuristic)
+        try:
+            self.plan, self.planCost = whca_search(self.currentState, self.task,
+                                                self.task.trueHeurDrop,
+                                                reserv_table, currentTime, heuristic)
+        except TypeError:
+            self.plan = None
+            self.planCost = None
+            print('Path Planning failed for agent {}!'.format(self._id))
+
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
 

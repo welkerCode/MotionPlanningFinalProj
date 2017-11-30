@@ -130,6 +130,8 @@ class GridMap:
                 agent is waiting for that timestep.
         '''
 
+        # remove time dimension and transpose path matrix
+        paths = list([path[:] for path in paths])
         for i, path in enumerate(paths):
             path = [p[:2] for p in path]
             for j, tuple in enumerate(path):
@@ -239,6 +241,7 @@ class GridMap:
         ax.grid(which='minor', color='k', linewidth=0.5)
 
         plt.show()
+
 
 def main(args):
     # test path of 4 agents, the zeros represent an agent waiting one time step

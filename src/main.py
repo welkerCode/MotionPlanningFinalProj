@@ -22,7 +22,9 @@ from global_utility import bfs_endpoints
 from global_utility import _ACTIONS
 from agent import Agent
 from task import Task
+from analysis import *
 
+import matplotlib.pyplot as plt
 import random
 import sys
 import copy
@@ -259,8 +261,6 @@ def run_hca(agents, tasks,env, reserv_table, heuristic):
         if agentDoneCount == len(agents):
             agentsDone = True
 
-
-
 def run_whca(agents, tasks, reserv_table, heuristic):
     """TODO: Docstring for plan_whca.
 
@@ -270,7 +270,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=True):
+def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -301,10 +301,14 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=
     env = GridMap('env_files/{}'.format(env))
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
 
+
     #agents, tasks = init_agents_tasks_with_regret(env, reserv_table, n_agents,
     #                                  agent_list, task_list, heuristic)
-    agents, tasks = init_agents_tasks(env, reserv_table,n_agents,
-                                      agent_list,task_list,heuristic)
+   
+    agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
+                                      agent_list, task_list, heuristic)
+    task_goals = [agent.task.dropoffState for agent in agents]
+
     if _DEBUG:
         print("\nAgent Starts and Goals")
         print("------------------------\n")
@@ -324,19 +328,18 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=
         print("Creating Animation...")
 
     ### ANIMATE RESULTS ###
-    agent_paths = [agent.getPath() for agent in agents]
-    agent_plans = [agent.getPlan() for agent in agents]
+    agent_paths = [agent.path for agent in agents]
     path_costs = [agent.planCost for agent in agents]
-    if animate:
-        env.display_map(agent_paths, record=False)
 
-    return agent_paths, agent_plans, path_costs
+    env.display_map(agent_paths, record=False)
+    path_analysis(agent_paths, task_goals, path_costs)
+
+    return agent_paths, task_goals, path_costs
 
 if __name__ == "__main__":
     env = sys.argv[1]
-    heur = sys.argv[2]
     n_agents = int(sys.argv[3])
-    main(env,'hca', heur, n_agents)
+    main(env,'hca', heuristic='true', n_agents=n_agents)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
