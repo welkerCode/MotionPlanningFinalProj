@@ -34,7 +34,7 @@ class Task:
 
     # Initialization function
     def __init__(self, newId, newPickupState=None, newDropoffState=None,
-                 newTaskStatus = "dropoff", res_table = None, heuristic='true'):
+                 newTaskStatus = "dropoff", res_table = None, heuristic=None):
         self.taskId = newId                 # Get the id of the task
         self.pickupState = newPickupState   # Get the pickup location
         self.dropoffState = newDropoffState # Get the dropoff location
@@ -44,7 +44,7 @@ class Task:
         Add code for trueHeur dropoff
         Add code for trueHeur pickup
         '''
-        if heuristic == 'true':
+        if heuristic is not None:
             self.trueHeurDrop = bfs_search_map(self.dropoffState,
                                                res_table.transition2D, _ACTIONS)
         else:

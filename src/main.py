@@ -25,6 +25,7 @@ from task import Task
 
 import random
 import sys
+import copy
 
 _DEBUG = False
 
@@ -65,6 +66,118 @@ def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list, heuris
             tasks.append(task)
 
     return agents, tasks
+
+'''
+Task needs to be equipped with a initPrioirity
+
+Bidding war algorithm
+
+Create a list to hold tasks that haven't been assigned
+Create a list to hold tasks that have been assigned
+
+Until the unassigned task list is empty
+    Create a list to hold agents that have been sorted
+    Iterate through the list of agents
+        Sort the agents into a new list in order of initPrioirty to the task
+            Calculate the initDist
+    Until the list of sorted agents are empty and we don't have a valid agent
+        If the agent is claimed
+            Identify the task that claimed it (a function that iterates through the list of all assigned agents and returns the one)                
+            If the current task has a greater priority
+                Assign agent to this task instead
+                Remove priority of prev Task
+                Place prev task in the list of unassigned tasks
+                Place the current task in the list of assigned tasks
+        Else
+            Place the task in the list of assigned tasks
+            Set valid agent to true
+        remove the task from the sorted list (pop off the top).
+'''
+
+
+def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_list, heuristic):
+    """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
+             If agent_list and task_list are None, generate n random agents and tasks
+
+    :env: TODO
+    :reserv_table: TODO
+    :n_agents: TODO
+    :agent_list: TODO
+    :task_list: TODO
+    :returns: TODO
+
+    """
+
+    if agent_list == None and task_list == None:
+        agent_list = []
+        task_list = []
+
+        # generates n_agents*2 samples from the list of endpoints
+        samples = random.sample(env.endpoints, n_agents * 2)
+        for i in range(n_agents):
+            # generate random agent/task pair
+            agent = Agent(i, samples.pop())
+            task = Task(i, agent.currentState, samples.pop(),
+                        "dropoff", reserv_table, heuristic)
+            agent_list.append(agent)
+            task_list.append(task)
+
+    else:
+        for i in range(n_agents):
+            agent = Agent(i, env.endpoints[agent_list[i]])
+            task = Task(i, agent.currentState, env.endpoints[task_list[i]],
+                        "dropoff", reserv_table, heuristic)
+            agent_list.append(agent)
+            task_list.append(task)
+
+    assignedAgents = []
+    assignedTasks = []
+    unassignedTasks = copy.deepcopy(task_list)
+    while len(unassignedTasks) > 0:
+        task = unassignedTasks[0]
+        sortedAgents = []
+        for agent in agent_list:
+            initDist = task.trueHeurDrop[agent.currentState[:2]] # Calculate the initial distance between the task and the agent
+            #addToSortedList(agent, initDist)    # Add it to the list in sorted order
+            sortedAgents.append((initDist, agent))
+        # After all agents are in, sort the list
+        sortedAgents.sort()
+
+        validAgent = False
+        while len(sortedAgents) != 0 and validAgent == False:
+            currentAgent = sortedAgents[0][1]
+            if currentAgent in assignedAgents:
+                competingTask = currentAgent.task
+                if task.trueHeurDrop[currentAgent.currentState[:2]] < competingTask.trueHeurDrop[currentAgent.currentState[:2]]:
+                    currentAgent.assignTask(task)
+                    assignedTasks.remove(competingTask)
+                    assignedTasks.append(task)
+                    unassignedTasks.append(competingTask)
+                    validAgent = True
+                else:
+                    sortedAgents.pop(0)
+            else:
+                currentAgent.assignTask(task)
+                assignedAgents.append(currentAgent)
+                assignedTasks.append(task)
+                validAgent = True
+        unassignedTasks.pop(0)
+    return assignedAgents, assignedTasks
+
+'''
+    Until the list of sorted agents are empty and we don't have a valid agent
+        If the agent is claimed
+            Identify the task that claimed it (a function that iterates through the list of all assigned agents and returns the one)                
+            If the current task has a greater priority
+                Assign agent to this task instead
+                Remove priority of prev Task
+                Place prev task in the list of unassigned tasks
+                Place the current task in the list of assigned tasks
+        Else
+            Place the task in the list of assigned tasks
+            Set valid agent to true
+        remove the task from the sorted list (pop off the top).
+'''
 
 def run_lra(agents, tasks, reserv_table, heuristic):
     """TODO: Docstring for plan_lra.
@@ -188,9 +301,10 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None, animate=
     env = GridMap('env_files/{}'.format(env))
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
 
-    agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
-                                      agent_list, task_list, heuristic)
-
+    #agents, tasks = init_agents_tasks_with_regret(env, reserv_table, n_agents,
+    #                                  agent_list, task_list, heuristic)
+    agents, tasks = init_agents_tasks(env, reserv_table,n_agents,
+                                      agent_list,task_list,heuristic)
     if _DEBUG:
         print("\nAgent Starts and Goals")
         print("------------------------\n")
