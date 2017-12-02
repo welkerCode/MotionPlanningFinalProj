@@ -254,7 +254,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False):
+def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -340,7 +340,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 
         #findNearestAgent(agent_list_copy, task_list_copy[0])
 
-        run_planner(agent_list_copy, task_list_copy, env_copy, reserv_table_copy, heuristic, task_list_copy, 3)
+        run_planner(agent_list_copy, task_list_copy, env_copy, reserv_table_copy, heuristic, task_list_copy, frequency)
         agent_paths_regret = [agent.path for agent in agent_list_copy]
         path_costs_regret = [agent.planCost for agent in agent_list_copy]
 
@@ -367,7 +367,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 if __name__ == "__main__":
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
-    main(env,'hca', heuristic='true', n_agents=n_agents, regret=True)
+    main(env,'hca', heuristic='true', n_agents=n_agents, regret=True, frequency=3)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
