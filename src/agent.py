@@ -34,7 +34,7 @@ class Agent:
         self.path.append(self.currentState) # We need to add the initial state to our path
         self.task = newTask # This holds the task assigned to the agent.  If none, then the agent is 'idle'
         self.timestep = 0
-        self.taskCompetionTime = 0 # This holds the final timer value kept within the task when the task has been completed.  Used for regret analysis
+        self.taskCompetionTime = [] # This holds the final timer value kept within the task when the task has been completed.  Used for regret analysis
 
         # In order to pause our reverse search for true heuristic, we need these two member variables
         self.revFrontier = PriorityQ()  # This is used to hold the frontier of the reverse search
@@ -111,9 +111,9 @@ class Agent:
                     print("Agent {} task:".format(self._id, self.task))
                 if not self.isAgentIdle():
                     # If it is not an artificial task, get the timer value
-                    #self.task.tickTimer()
-                    #if self.task.taskID[0] != 'a'
-                        #self.taskCompetionTime = self.task.getTimer()
+                    self.task.tickTimer()
+                    if str(self.task.taskId)[0] != 'a':
+                        self.taskCompetionTime.append(self.task.getTimer())
                     self.task.progressStatus()
                     self.assignTask(None)
                     self.plan = None

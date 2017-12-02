@@ -69,6 +69,38 @@ def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list, heuris
 
     return agents, tasks
 
+def gen_tasks_agents(env, reserv_table, n_agents, heuristic):
+    # This first part is very similar to init_agent_tasks(), but doesn't assign tasks.
+    agent_list = []
+    task_list = []
+
+    # generates n_agents*2 samples from the list of endpoints
+    samples = random.sample(env.endpoints, n_agents * 2)
+    for i in range(n_agents):
+        # generate random agent/task pair
+        agent = Agent(i, samples.pop())
+        task = Task(i, agent.currentState, samples.pop(),
+                    "dropoff", reserv_table, heuristic)
+        agent_list.append(agent)
+        task_list.append(task)
+    return agent_list, task_list
+
+def findNearestAgent(agents, task):
+    sortedAgents = []
+    for agent in agents:
+        eligible = False    # This flag is used to check if the current agent is idle or has an artificial task
+        if agent.isAgentIdle(): # If the agent is Idle, set the flag
+            eligible = True
+        elif str(agent.task.taskId)[0] == 'a': # If the agent is not idle, but
+            eligible = True
+        if eligible == True:    # If the flag was set
+            initDist = task.trueHeurDrop[agent.currentState[:2]]  # Get the initial distance
+            sortedAgents.append((initDist, agent))  # Add the agent to the list
+    sortedAgents.sort() # Once all of the agents have been collected, sort the list according to the distance
+    desiredAgent = sortedAgents[0][1]  # Get the best agent
+    desiredAgent.assignTask(task)   # Assign the task to the agent
+    return desiredAgent # Return the agent
+
 def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_list, heuristic):
     """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
              If agent_list and task_list are None, generate n random agents and tasks
@@ -81,31 +113,6 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
     :returns: TODO
 
     """
-
-
-    # This first part is very similar to init_agent_tasks(), but doesn't assign tasks.
-    if agent_list == None and task_list == None:
-        agent_list = []
-        task_list = []
-
-        # generates n_agents*2 samples from the list of endpoints
-        samples = random.sample(env.endpoints, n_agents * 2)
-        for i in range(n_agents):
-            # generate random agent/task pair
-            agent = Agent(i, samples.pop())
-            task = Task(i, agent.currentState, samples.pop(),
-                        "dropoff", reserv_table, heuristic)
-            agent_list.append(agent)
-            task_list.append(task)
-
-    else:
-        for i in range(n_agents):
-            agent = Agent(i, env.endpoints[agent_list[i]])
-            task = Task(i, agent.currentState, env.endpoints[task_list[i]],
-                        "dropoff", reserv_table, heuristic)
-            agent_list.append(agent)
-            task_list.append(task)
-
 
     assignedAgents = [] # This list will hold the agents that have been assigned tasks
     assignedTasks = []  # This list will hold the tasks that have been assigned an agent
@@ -164,7 +171,7 @@ def run_lra(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def run_hca(agents, tasks,env, reserv_table, heuristic):
+def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequency):
     """TODO: Docstring for plan_hca.
 
     :agents: TODO
@@ -178,7 +185,10 @@ def run_hca(agents, tasks,env, reserv_table, heuristic):
     agentsDone = False
 
     ### ACTION ###
-    while not agentsDone:
+    while not agentsDone or len(unassignedTasks) > 0:
+        if len(unassignedTasks) > 0 and global_timestep % frequency == 0:
+            findNearestAgent(agents, unassignedTasks[0])
+            unassignedTasks.pop(0)
         for agent in agents:
             if agent.getPlan() is None:
                 if not agent.isAgentIdle():
@@ -244,7 +254,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
+def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -272,48 +282,92 @@ def main(env,alg, heuristic, n_agents, agent_list=None, task_list=None):
     elif alg == 'whca':
         run_planner = run_whca
 
-    env = GridMap('env_files/{}'.format(env))
+    env = GridMap('env_files/{}'.format(env_name))
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+    if regret == False:
+        agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
+                                          agent_list, task_list, heuristic)
 
+        task_goals = [agent.task.dropoffState for agent in agents]
 
-    #agents, tasks = init_agents_tasks_with_regret(env, reserv_table, n_agents,
-    #                                  agent_list, task_list, heuristic)
-   
-    agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
-                                      agent_list, task_list, heuristic)
-    task_goals = [agent.task.dropoffState for agent in agents]
+        if _DEBUG:
+            print("\nAgent Starts and Goals")
+            print("------------------------\n")
 
-    if _DEBUG:
-        print("\nAgent Starts and Goals")
-        print("------------------------\n")
+            for i, agent in enumerate(agents):
+                print("Agent {}:".format(i))
+                print("\t Start: {}".format(agent.currentState))
+                print("\t Goal:   {}".format(agent.task.dropoffState))
 
-        for i, agent in enumerate(agents):
-            print("Agent {}:".format(i))
-            print("\t Start: {}".format(agent.currentState))
-            print("\t Goal:   {}".format(agent.task.dropoffState))
+        reserv_table.resvAgentInit(agents)
 
-    reserv_table.resvAgentInit(agents)
+        ### ACTION ###
+        run_planner(agents, tasks, env, reserv_table, heuristic)
 
-    ### ACTION ###
-    run_planner(agents, tasks, env, reserv_table, heuristic)
+        if _DEBUG:
+            reserv_table.display(env)
+            print("Creating Animation...")
 
-    if _DEBUG:
-        reserv_table.display(env)
-        print("Creating Animation...")
+        ### ANIMATE RESULTS ###
+        agent_paths = [agent.path for agent in agents]
+        path_costs = [agent.planCost for agent in agents]
 
-    ### ANIMATE RESULTS ###
-    agent_paths = [agent.path for agent in agents]
-    path_costs = [agent.planCost for agent in agents]
+        env.display_map(agent_paths, record=False)
+        path_analysis(agent_paths, task_goals, path_costs)
 
-    env.display_map(agent_paths, record=False)
-    path_analysis(agent_paths, task_goals, path_costs)
+        return agent_paths, task_goals, path_costs
 
-    return agent_paths, task_goals, path_costs
+    else:
+        # Create copies of the environment and the reservation table
+        env_copy = GridMap('env_files/{}'.format(env_name))
+        reserv_table_copy = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+
+        # Create two copies of a random sample of tasks and agents
+        agent_list, task_list = gen_tasks_agents(env, reserv_table, n_agents, heuristic)
+        task_list_copy = copy.deepcopy(task_list)
+        agent_list_copy = copy.deepcopy(agent_list)
+
+        # Find an optimal baseline to compare against
+        agents_baseline, tasks_baseline = init_agents_tasks_with_regret(env, reserv_table, n_agents,
+                                                                        agent_list, task_list, heuristic)
+
+        reserv_table.resvAgentInit(agent_list_copy)
+
+        ### ACTION ###
+        run_planner(agent_list, task_list, env, reserv_table, heuristic, [], None)
+        agent_paths = [agent.path for agent in agent_list]
+        path_costs = [agent.planCost for agent in agent_list]
+
+        #findNearestAgent(agent_list_copy, task_list_copy[0])
+
+        run_planner(agent_list_copy, task_list_copy, env_copy, reserv_table_copy, heuristic, task_list_copy, 3)
+        agent_paths_regret = [agent.path for agent in agent_list_copy]
+        path_costs_regret = [agent.planCost for agent in agent_list_copy]
+
+        env.display_map(agent_paths, record=False)
+        env_copy.display_map(agent_paths_regret, record=False)
+        #path_analysis(agent_paths, task_goals, path_costs)
+        #path_analysis_regret(agent_paths_regret, task_goals, path_costs_regret)
+
+        # Do the regret analysis:
+        taskCompSumBaseline = 0.0
+        taskCompSumRegret = 0.0
+        for agent in agent_list:
+            for value in agent.taskCompetionTime:
+                taskCompSumBaseline += value
+        for agent in agent_list_copy:
+            for value in agent.taskCompetionTime:
+                taskCompSumRegret += value
+
+        regret = taskCompSumRegret/taskCompSumBaseline
+        print("Regret: ", regret)
+
+        return agent_paths, path_costs
 
 if __name__ == "__main__":
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
-    main(env,'hca', heuristic='true', n_agents=n_agents)
+    main(env,'hca', heuristic='true', n_agents=n_agents, regret=True)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
