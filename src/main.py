@@ -302,7 +302,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         reserv_table.resvAgentInit(agents)
 
         ### ACTION ###
-        run_planner(agents, tasks, env, reserv_table, heuristic)
+        run_planner(agents, tasks, env, reserv_table, heuristic, [], None)
 
         if _DEBUG:
             reserv_table.display(env)
@@ -367,7 +367,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 if __name__ == "__main__":
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
-    main(env,'hca', heuristic='true', n_agents=n_agents, regret=True, frequency=3)
+    main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
