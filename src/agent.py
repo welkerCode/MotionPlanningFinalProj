@@ -35,6 +35,7 @@ class Agent:
         self.task = newTask # This holds the task assigned to the agent.  If none, then the agent is 'idle'
         self.timestep = 0
         self.taskCompetionTime = [] # This holds the final timer value kept within the task when the task has been completed.  Used for regret analysis
+        self.failure = False
 
         # In order to pause our reverse search for true heuristic, we need these two member variables
         self.revFrontier = PriorityQ()  # This is used to hold the frontier of the reverse search
@@ -53,8 +54,7 @@ class Agent:
                                                 self.task.trueHeurDrop,
                                                 reserv_table, currentTime, heuristic)
         except TypeError:
-            self.plan = None
-            self.planCost = None
+            self.failure = True
             print('Path Planning failed for agent {}!'.format(self._id))
 
 

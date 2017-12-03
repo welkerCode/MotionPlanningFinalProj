@@ -33,7 +33,7 @@ import sys
 
 # Set up formatting for the movie files
 Writer = animation.writers['ffmpeg']
-writer = Writer(fps=1, metadata=dict(artist='Me'), bitrate=1800)
+writer = Writer(fps=10, metadata=dict(artist='Me'), bitrate=1800)
 
 _DEBUG = False
 _GOAL_COLOR = 0.45
@@ -119,7 +119,7 @@ class GridMap:
                 if lines[r][c] == 'e':
                     self.endpoints.append((r,c))
 
-    def display_map(self, paths=[], record=False):
+    def display_map(self, paths=[], record=False, fn='trial'):
         '''
         Visualize the map read in. Optionally display the resulting plans for
         all agents
@@ -173,8 +173,8 @@ class GridMap:
         for path in paths:
             interp_path = []
             for i in range(len(path[:-1])):
-                x = np.linspace(path[i][0], path[i+1][0], 20)
-                y = np.linspace(path[i][1], path[i+1][1], 20)
+                x = np.linspace(path[i][0], path[i+1][0], 10)
+                y = np.linspace(path[i][1], path[i+1][1], 10)
                 interp = zip(x,y)
                 interp_path.extend(interp)
             interp_paths.append(interp_path)
@@ -228,12 +228,12 @@ class GridMap:
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,
                                         frames=len(interp_paths[0]),  # animation frames
-                                        interval=40,          # time interval (ms)
+                                        interval=100,          # time interval (ms)
                                         repeat=False,
                                         blit=True)
 
         if record:
-            anim.save('trial_animation.mp4', writer=writer)
+            anim.save('{}.mp4'.format(fn), writer=writer)
 
         # ax.set_yticks(np.arange(0,20,5))
         ax.set_xticks(np.arange(-.5, self.cols, 1), minor=True);

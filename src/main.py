@@ -30,6 +30,7 @@ import sys
 import copy
 
 _DEBUG = False
+_DISPLAY = True # display animation
 
 def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list, heuristic):
     """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
@@ -190,7 +191,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
             findNearestAgent(agents, unassignedTasks[0])
             unassignedTasks.pop(0)
         for agent in agents:
-            if agent.getPlan() is None:
+            if agent.getPlan() is None and agent.failure is False:
                 if not agent.isAgentIdle():
                     if _DEBUG:
                         print("\nPlanning agent {}...".format(agent._id))
@@ -241,6 +242,8 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
         agentDoneCount = 0
         for agent in agents:
             if agent.isAgentIdle():
+                agentDoneCount += 1
+            if agent.failure:
                 agentDoneCount += 1
         if agentDoneCount == len(agents):
             agentsDone = True
@@ -312,7 +315,8 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         agent_paths = [agent.path for agent in agents]
         path_costs = [agent.planCost for agent in agents]
 
-        env.display_map(agent_paths, record=False)
+        if _DISPLAY:
+            env.display_map(agent_paths, record=False)
         path_analysis(agent_paths, task_goals, path_costs)
 
         return agent_paths, task_goals, path_costs
@@ -365,9 +369,9 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         return agent_paths, path_costs
 
 if __name__ == "__main__":
-    env = sys.argv[1]
-    n_agents = int(sys.argv[2])
-    main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
+    # env = sys.argv[1]
+    # n_agents = int(sys.argv[2])
+    # main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
@@ -399,8 +403,8 @@ if __name__ == "__main__":
     # Env_warehouse2 Testing
     ######################
 
-    # test_agent_ep = [-1,-26,23, 49]
-    # test_task_ep = [71, 50,12, -27]
+    test_agent_ep = [-1,-26,23, 49]
+    test_task_ep = [71, 50,12, -27]
 
     ######################
     # Env_warehouse2 Testing
@@ -411,5 +415,12 @@ if __name__ == "__main__":
 
     ########################
 
-    # main('env_small_warehouse.txt','hca', sys.argv[1], len(test_agent_ep), agent_list=test_agent_ep, task_list=test_task_ep)
+    print('true heur')
 
+    main('env_warehouse2.txt','hca','true', len(test_agent_ep),
+         agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
+
+    print('manhattan')
+
+    main('env_warehouse2.txt','hca','manhattan', len(test_agent_ep),
+         agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
