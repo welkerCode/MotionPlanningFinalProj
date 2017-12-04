@@ -101,6 +101,10 @@ class Agent:
         try:
             if self.plan is not None:
                 self.currentState = self.plan[0]
+            else:
+                self.currentState = (self.currentState[0], self.currentState[1], self.currentState[2]+1)
+                reserv_table.resvState(self.currentState)
+                self.path.append(self.currentState)
         except IndexError:
             self.currentState = self.path[-1][:2] + (self.timestep,)
         if self.plan is not None:

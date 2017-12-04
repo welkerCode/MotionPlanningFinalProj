@@ -115,6 +115,10 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
     """
 
     assignedAgents = [] # This list will hold the agents that have been assigned tasks
+    availableAgents = []
+    for agent in agent_list:
+        if agent.isAgentIdle() or str(agent.task.taskId)[0] == 'a':
+            availableAgents.append(agent)
     assignedTasks = []  # This list will hold the tasks that have been assigned an agent
     unassignedTasks = copy.deepcopy(task_list)  # This list will hold the tasks that still need an agent
 
@@ -126,7 +130,7 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
         sortedAgents = []           # Create a list that holds agents according to the task's priority
 
         # For every agent in the list
-        for agent in agent_list:
+        for agent in availableAgents:
             initDist = task.trueHeurDrop[agent.currentState[:2]] # Get the initial distance between the task and the agent
             sortedAgents.append((initDist, agent))               # Add that distance and agent as a tuple into the list to be sorted
         sortedAgents.sort() # After all agents are in, sort the list according to their initDist
@@ -159,7 +163,7 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
                 validAgent = True                   # Set the flag so we can escape this while loop
 
         unassignedTasks.pop(0)                      # Once we get here, we have assigned an agent to this task.  Now remove it from the list of unassigned tasks
-    return assignedAgents, assignedTasks            # In the end, return the list of assigned tasks and agents
+    return agent_list, assignedTasks            # In the end, return the list of assigned tasks and agents
 
 
 def run_lra(agents, tasks, reserv_table, heuristic):
@@ -171,7 +175,7 @@ def run_lra(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequency):
+def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequency, numTasksConcurrent):
     """TODO: Docstring for plan_hca.
 
     :agents: TODO
@@ -186,9 +190,15 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
 
     ### ACTION ###
     while not agentsDone or len(unassignedTasks) > 0:
-        if len(unassignedTasks) > 0 and global_timestep % frequency == 0:
-            findNearestAgent(agents, unassignedTasks[0])
-            unassignedTasks.pop(0)
+        if frequency is not None and global_timestep % frequency == 0:
+            tasksToAssign = []
+            for x in range(0,numTasksConcurrent):
+                if len(unassignedTasks) > 0:
+                    tasksToAssign.append(unassignedTasks.pop(0))
+            if len(tasksToAssign) > 0:
+                agents, tasks = init_agents_tasks_with_regret(env, reserv_table, n_agents, agents, tasksToAssign, heuristic)
+            #findNearestAgent(agents, unassignedTasks[0])
+            #unassignedTasks.pop(0)
         for agent in agents:
             if agent.getPlan() is None:
                 if not agent.isAgentIdle():
@@ -244,6 +254,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
                 agentDoneCount += 1
         if agentDoneCount == len(agents):
             agentsDone = True
+    return global_timestep
 
 def run_whca(agents, tasks, reserv_table, heuristic):
     """TODO: Docstring for plan_whca.
@@ -254,7 +265,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3):
+def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3, numTasksConcurrently=1):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -302,7 +313,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         reserv_table.resvAgentInit(agents)
 
         ### ACTION ###
-        run_planner(agents, tasks, env, reserv_table, heuristic, [], None)
+        run_planner(agents, tasks, env, reserv_table, heuristic, [], None, None)
 
         if _DEBUG:
             reserv_table.display(env)
@@ -334,18 +345,18 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         reserv_table.resvAgentInit(agent_list_copy)
 
         ### ACTION ###
-        run_planner(agent_list, task_list, env, reserv_table, heuristic, [], None)
+        run_planner(agent_list, task_list, env, reserv_table, heuristic, [], None, numTasksConcurrently)
         agent_paths = [agent.path for agent in agent_list]
         path_costs = [agent.planCost for agent in agent_list]
 
         #findNearestAgent(agent_list_copy, task_list_copy[0])
 
-        run_planner(agent_list_copy, task_list_copy, env_copy, reserv_table_copy, heuristic, task_list_copy, frequency)
+        global_timestep = run_planner(agent_list_copy, task_list_copy, env_copy, reserv_table_copy, heuristic, task_list_copy, frequency, numTasksConcurrently)
         agent_paths_regret = [agent.path for agent in agent_list_copy]
         path_costs_regret = [agent.planCost for agent in agent_list_copy]
 
-        env.display_map(agent_paths, record=False)
-        env_copy.display_map(agent_paths_regret, record=False)
+        #env.display_map(agent_paths, record=False)
+        #env_copy.display_map(agent_paths_regret, record=False)
         #path_analysis(agent_paths, task_goals, path_costs)
         #path_analysis_regret(agent_paths_regret, task_goals, path_costs_regret)
 
@@ -362,12 +373,22 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         regret = taskCompSumRegret/taskCompSumBaseline
         print("Regret: ", regret)
 
-        return agent_paths, path_costs
+        return taskCompSumRegret/n_agents, global_timestep
 
 if __name__ == "__main__":
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
-    main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
+    regretSum = 0
+    global_time_sum = 0
+    for x in range(0,100):
+        newRegret, global_time = main(env,'hca', heuristic='true', n_agents=n_agents, regret=True, frequency=3, numTasksConcurrently=1)
+        regretSum += newRegret
+        global_time_sum += global_time
+    regretAvg = regretSum/100.0
+    global_time_avg = global_time_sum/100.0
+    print("-------------------------")
+    print("Avg Task Compl Time: ", regretAvg)
+    print("Avg Timesteps to finish: ", global_time_avg)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
