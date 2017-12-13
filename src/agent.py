@@ -54,8 +54,10 @@ class Agent:
                                                 self.task.trueHeurDrop,
                                                 reserv_table, currentTime, heuristic)
         except TypeError:
+            self.plan= None
+            self.planCost = None
             self.failure = True
-            print('Path Planning failed for agent {}!'.format(self._id))
+            # print('Path Planning failed for agent {}!'.format(self._id))
 
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
@@ -101,6 +103,11 @@ class Agent:
         try:
             if self.plan is not None:
                 self.currentState = self.plan[0]
+            else:
+                self.currentState = (self.currentState[0], self.currentState[1], self.currentState[2]+1)
+                reserv_table.resvState(self.currentState)
+                self.path.append(self.currentState)
+
         except IndexError:
             self.currentState = self.path[-1][:2] + (self.timestep,)
         if self.plan is not None:

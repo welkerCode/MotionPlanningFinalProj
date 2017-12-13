@@ -184,6 +184,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
     global_timestep = 0
     artif_task_count = 0
     agentsDone = False
+    agentFailureCount = 0
 
     ### ACTION ###
     while not agentsDone or len(unassignedTasks) > 0:
@@ -191,7 +192,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
             findNearestAgent(agents, unassignedTasks[0])
             unassignedTasks.pop(0)
         for agent in agents:
-            if agent.getPlan() is None and agent.failure is False:
+            if agent.getPlan() is None:
                 if not agent.isAgentIdle():
                     if _DEBUG:
                         print("\nPlanning agent {}...".format(agent._id))
@@ -242,8 +243,6 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
         agentDoneCount = 0
         for agent in agents:
             if agent.isAgentIdle():
-                agentDoneCount += 1
-            if agent.failure:
                 agentDoneCount += 1
         if agentDoneCount == len(agents):
             agentsDone = True
@@ -369,9 +368,9 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         return agent_paths, path_costs
 
 if __name__ == "__main__":
-    # env = sys.argv[1]
-    # n_agents = int(sys.argv[2])
-    # main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
+    env = sys.argv[1]
+    n_agents = int(sys.argv[2])
+    main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]
@@ -403,8 +402,8 @@ if __name__ == "__main__":
     # Env_warehouse2 Testing
     ######################
 
-    test_agent_ep = [-1,-26,23, 49]
-    test_task_ep = [71, 50,12, -27]
+    # test_agent_ep = [-1,-26,23, 49]
+    # test_task_ep = [71, 50,12, -27]
 
     ######################
     # Env_warehouse2 Testing
@@ -415,12 +414,12 @@ if __name__ == "__main__":
 
     ########################
 
-    print('true heur')
+    # print('true heur')
 
-    main('env_warehouse2.txt','hca','true', len(test_agent_ep),
-         agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
+    # main('env_warehouse2.txt','hca','true', len(test_agent_ep),
+    #      agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
 
-    print('manhattan')
+    # print('manhattan')
 
-    main('env_warehouse2.txt','hca','manhattan', len(test_agent_ep),
-         agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
+    # main('env_warehouse2.txt','hca','manhattan', len(test_agent_ep),
+    #      agent_list=test_agent_ep, task_list=test_task_ep, regret=False)

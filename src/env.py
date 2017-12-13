@@ -33,7 +33,7 @@ import sys
 
 # Set up formatting for the movie files
 Writer = animation.writers['ffmpeg']
-writer = Writer(fps=10, metadata=dict(artist='Me'), bitrate=1800)
+writer = Writer(fps=20, metadata=dict(artist='Me'), bitrate=1800)
 
 _DEBUG = False
 _GOAL_COLOR = 0.45
@@ -156,10 +156,10 @@ class GridMap:
         for i, path in enumerate(paths):
             circle = mpl.patches.Circle(path[0], 0.5, color=_COLORS[i%len(_COLORS)])
             circles.append(circle)
-            num = mpl.text.Text(text=u'{}'.format(i))
-            num.set_position((path[0][0]+self.x_offset, path[0][1]+self.y_offset))
-            num.set_size(str(self.id_size))
-            numbers.append(num)
+            # num = mpl.text.Text(text=u'{}'.format(i))
+            # num.set_position((path[0][0]+self.x_offset, path[0][1]+self.y_offset))
+            # num.set_size(str(self.id_size))
+            # numbers.append(num)
 
 
         for i,path in enumerate(paths):
@@ -185,8 +185,8 @@ class GridMap:
             """
             for circle in circles:
                 ax.add_patch(circle)
-            for num in numbers:
-                ax.add_artist(num)
+            # for num in numbers:
+            #     ax.add_artist(num)
             #plot starting points
             for i,path in enumerate(paths):
                 start = mpl.patches.Circle(path[0], 0.5,ls='--',
@@ -194,18 +194,19 @@ class GridMap:
                                            color = _COLORS[i%len(_COLORS)])
                 ax.add_patch(start)
 
-            return circles + numbers
+            # return circles + numbers
+            return circles
 
         def animate(i):
             """
             Iterate agent position by time step. Location of 0 means agent is
             waiting.
             """
-            if i == 1:
-                #plot starting points
-                start = mpl.patches.Circle(path[0], 0.5, alpha=0.3,
-                                           color = _COLORS[i%len(_COLORS)])
-                ax.add_patch(start)
+            #if i == 1:
+            #    #plot starting points
+            #    start = mpl.patches.Circle(path[0], 0.5, alpha=0.3,
+            #                               color = _COLORS[i%len(_COLORS)])
+            #    ax.add_patch(start)
 
             for j, circle in enumerate(circles):
                 # If not at end of path, move agent to next position.
@@ -213,17 +214,18 @@ class GridMap:
                     # if location is not 0, try to move forward.
                     if interp_paths[j][i]:
                         circle.center = interp_paths[j][i]
-                        numbers[j].set_position((interp_paths[j][i][0]+self.x_offset,
-                                                 interp_paths[j][i][1]+self.y_offset))
+                        # numbers[j].set_position((interp_paths[j][i][0]+self.x_offset,
+                                                 # interp_paths[j][i][1]+self.y_offset))
                     else:
                         pass
                 except IndexError:
                     # if at end of path, agent stays.
                     circle.center = interp_paths[j][-1]
-                    numbers[j].set_position((interp_paths[j][-1][0]+self.x_offset,
-                                             interp_paths[j][-1][1]+self.y_offset))
+                    # numbers[j].set_position((interp_paths[j][-1][0]+self.x_offset,
+                    #                          interp_paths[j][-1][1]+self.y_offset))
 
-            return circles + numbers
+            # return circles + numbers
+            return circles
 
         anim = animation.FuncAnimation(fig, animate,
                                         init_func=init,

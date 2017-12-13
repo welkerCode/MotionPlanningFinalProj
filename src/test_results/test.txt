@@ -1,0 +1,23 @@
+
+Test Parameters
+-----------------
+
+Environment: env_warehouse.txt
+Number of agents: 24
+Number of trial iterations: 10
+
+-----------------------
+Cooperative A* Results:
+-----------------------
+Average path distance: 19.0916666667
+Average path time: 19.9083333333
+Average cost: 18.1833333333
+Number of failures: 2
+
+-----------------------
+Hierarchical Cooperative A* Results:
+-----------------------
+Average path distance: 19.0916666667
+Average path time: 19.8958333333
+Average cost: 17.9875
+Number of failures: 2
