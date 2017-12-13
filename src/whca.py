@@ -26,7 +26,7 @@ _DEBUG = False
 _DEBUG_END = False
 
 
-def whca_search(currentState, task, trueHeur, reserv_table, currentTime, heuristic):
+def hca_search(currentState, task, trueHeur, reserv_table, currentTime, heuristic):
     '''
     map             - environment map.  Needed to obtain the manhattan heuristic?
     currentState    - the state the agent is currently at
@@ -100,6 +100,77 @@ def whca_search(currentState, task, trueHeur, reserv_table, currentTime, heurist
     return None
 
 
+def whca_search(currentState, task, trueHeur,reserv_table, currentTime, heuristic):
+    '''
+    map             - environment map.  Needed to obtain the manhattan heuristic?
+    currentState    - the state the agent is currently at
+    task            - the task assigned to the agent, yields dropoff location (goal) as well as some other info
+    revVisited      - the list that holds the states the reverse search has already searched
+    revFrontier     - the PriorityQ that holds the frontier for the reverse search
+    trueHeur        - a dictionary stored in the agent that holds the true heuristic for any node that it has searched for
+    heuristic       - either use trueHeur or manhattan_heuristic
+    '''
+
+    '''
+    init_state, f, is_goal, actions, h,
+    '''
+
+    # These are set for every search we run
+    f = reserv_table.transition3D
+    actions = _ACTIONS
+    # action_cost = _ACTION_1_COST
+
+    # Obtain the goal we are working towards
+    dropoffState = task.getDropoff()
+
+    pickupState = task.getPickup()     # Add in when we are not starting at the pickup location
+    taskStatus = task.getTaskStatus()  # Add in when we are not starting at the pickup location
+
+    # Initialize the first state in the search
+    cost = 0
+    n0 = SearchNode(currentState, actions, cost=cost)
+    frontier = PriorityQ()
+    frontier.push(n0, cost)
+    visited = {}
+
+
+    # Until we run out of places to search
+    while len(frontier) > 0:
+        n_i = frontier.pop()
+        if n_i.state in visited:
+            if visited[n_i.state] < n_i.cost:
+                continue
+        if n_i.state[_ROW] == dropoffState[_ROW] and n_i.state[_COL] == dropoffState[_COL]:
+            if _DEBUG_END:
+                print 'goal found at', n_i.state
+                print 'goal cost is', n_i.cost
+            path = backpath(n_i)
+            if _DEBUG:
+                print(path)
+            return path, n_i.cost
+        visited[n_i.state] = n_i.cost
+        if _DEBUG:
+            print('popped = {}'.format(n_i.state))
+            print('visited = {}'.format(visited))
+        for a in n_i.actions:
+            s_prime, cost = f(n_i.state, a)
+            if not reserv_table.checkStateResv(s_prime[:2], s_prime[2]):
+                cost_spent = n_i.cost + cost # g(s_prime)
+                n_prime = SearchNode(s_prime, actions, n_i, a, cost = cost_spent)
+                if heuristic == 'true':
+                    h = trueHeur.get(s_prime[:2])
+                elif heuristic == 'manhattan':
+                    h = manhattan_heuristic(s_prime[:2], dropoffState)
+                # Add the heuristic for the combined cost-spent and cost-to-go
+                new_cost = cost_spent + h # f(s_prime)
+                if ((s_prime in visited and visited[s_prime] > cost_spent) or
+                    (s_prime not in visited and s_prime not in frontier)):
+                    frontier.push(n_prime, new_cost)
+                elif s_prime in frontier and new_cost < frontier.get_cost(n_prime):
+                    frontier.replace(n_prime, new_cost)
+    if _DEBUG_END:
+        print 'No goal found'
+    return None
 
 def whca_reverse(f, desiredLocation, actions, h, frontier, visited, trueHeurDict):
     '''

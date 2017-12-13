@@ -12,7 +12,7 @@ Description: Holds the class description for the "Agent" class
 
 from priorityq import *
 from task import *
-from whca import whca_search
+from whca import whca_search, hca_search
 
 
 _DEBUG = False
@@ -50,9 +50,25 @@ class Agent:
         """
 
         try:
-            self.plan, self.planCost = whca_search(self.currentState, self.task,
+            self.plan, self.planCost = hca_search(self.currentState, self.task,
                                                 self.task.trueHeurDrop,
                                                 reserv_table, currentTime, heuristic)
+        except TypeError:
+            self.plan= None
+            self.planCost = None
+            self.failure = True
+
+    def planPathWHCA(self, reserv_table, currentTime, heuristic):
+        """
+        Plans a path for the agent
+        Maybe include a function here to remove old states from the reservation
+        table associated with the old plan
+        """
+
+        try:
+            self.plan, self.planCost = whca_search(self.currentState, self.task,
+                                                   self.task.trueHeurDrop,
+                                                   reserv_table, currentTime, heuristic)
         except TypeError:
             self.plan= None
             self.planCost = None

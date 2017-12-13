@@ -17,7 +17,7 @@ Description: This is the program that needs to be run to execute our simulation
 from reserv_table import *
 from env import GridMap
 from global_utility import assignTasks
-from global_utility import incrementTimestep
+from global_utility import incrementTimestep, incrementTimestepWHCA
 from global_utility import bfs_endpoints
 from global_utility import _ACTIONS
 from agent import Agent
@@ -247,14 +247,72 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
         if agentDoneCount == len(agents):
             agentsDone = True
 
-def run_whca(agents, tasks, reserv_table, heuristic):
-    """TODO: Docstring for plan_whca.
+def run_whca(agents, tasks,env, reserv_table, heuristic, window):
+    """TODO: Docstring for plan_hca.
 
-    :arg1: TODO
+    :agents: TODO
+    :reserv_table: TODO
     :returns: TODO
 
     """
-    pass
+    TaskIDGen = 0
+    global_timestep = 0
+    artif_task_count = 0
+    agentsDone = False
+    agentFailureCount = 0
+
+    # k = window//2
+    k = window
+
+    busy_agents = copy.deepcopy(agents)
+    idle_agents = []
+
+    while len(busy_agents) > 0:
+        if global_timestep % k == 0:
+            # if global_timestep != 0:
+            #     for agent in busy_agents:
+            #         print(agent.plan)
+            #         reserv_table.clearPlan(agent.plan)
+
+            # reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+            # reserv_table.resvAgentInitWHCA(busy_agents, global_timestep)
+            # reserv_table.resvAgentInitWHCA(idle_agents, global_timestep)
+            # random.shuffle(busy_agents)
+            for agent in busy_agents:
+                agent.planPathWHCA(reserv_table, global_timestep, heuristic )
+                if len(agent.plan) >= window:
+                    agent.plan = agent.plan[:window]
+                reserv_table.resvPath(agent.plan, global_timestep)
+
+        incrementTimestepWHCA(busy_agents, idle_agents,reserv_table)
+
+        for agent in idle_agents:
+            # local repair for idle agents
+            if agent.isAgentIdle:
+                next_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 1)
+                second_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 2)
+                third_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 3)
+                if next_state == True or second_state == True or third_state == True:
+
+                    # create task with different ID
+                    # plan from currentState to task
+
+                    # endpoint_index = env.endpoints.index(agent.currentState[:2])
+                    # print(endpoint_index)
+
+                    # right = env.endpoints[endpoint_index + 1]
+                    # left = env.endpoints[endpoint_index - 1]
+
+                    dest_end = bfs_endpoints(agent.currentState[:2], reserv_table.transition2D, _ACTIONS,
+                                                env.endpoints, tasks, agents)
+                    relocateTask = Task('a{}'.format(artif_task_count), None, dest_end, "dropoff", reserv_table)
+                    agent.assignTask(relocateTask)
+                    agent.planPath(reserv_table, global_timestep, heuristic)
+                    artif_task_count += 1
+
+        global_timestep += 1
+
+    return idle_agents
 
 def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3):
     """TODO: Docstring for main.
@@ -277,13 +335,6 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 
     """
 
-    if alg == 'lra':
-        run_planner = run_lra
-    elif alg == 'hca':
-        run_planner = run_hca
-    elif alg == 'whca':
-        run_planner = run_whca
-
     env = GridMap('env_files/{}'.format(env_name))
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
     if regret == False:
@@ -304,10 +355,13 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         reserv_table.resvAgentInit(agents)
 
         ### ACTION ###
-        run_planner(agents, tasks, env, reserv_table, heuristic, [], None)
+        if alg == 'hca':
+            run_hca(agents, tasks, env, reserv_table, heuristic )
+        if alg == 'whca':
+            agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=10 )
 
+        reserv_table.display(env)
         if _DEBUG:
-            reserv_table.display(env)
             print("Creating Animation...")
 
         ### ANIMATE RESULTS ###
@@ -316,7 +370,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 
         if _DISPLAY:
             env.display_map(agent_paths, record=False)
-        path_analysis(agent_paths, task_goals, path_costs)
+        # path_analysis(agent_paths, task_goals, path_costs)
 
         return agent_paths, task_goals, path_costs
 
@@ -369,8 +423,9 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 
 if __name__ == "__main__":
     env = sys.argv[1]
-    n_agents = int(sys.argv[2])
-    main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3)
+    planner = sys.argv[2]
+    n_agents = int(sys.argv[3])
+    main(env,planner, heuristic='true', n_agents=n_agents, regret=False, frequency=3)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]

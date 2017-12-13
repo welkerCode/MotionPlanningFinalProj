@@ -83,6 +83,19 @@ class Reserv_Table:
             self.res_table[agent.currentState[0], agent.currentState[1], 0] = True
             self.res_table[agent.currentState[0], agent.currentState[1], 1] = True
 
+    def resvAgentInitWHCA(self, agents, currentTimestep):
+        """
+        Reserves agents initial state in table
+        """
+        for agent in agents:
+            self.res_table[agent.currentState[0], agent.currentState[1], currentTimestep] = True
+            # self.res_table[agent.currentState[0], agent.currentState[1], 1] = True
+
+    def clearPlan(self, agent_plan):
+        """
+        """
+        for state in agent_plan:
+            self.res_table.pop(state)
 
     def transition3D(self, s, a):
         '''

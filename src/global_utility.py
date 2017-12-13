@@ -40,6 +40,25 @@ def incrementTimestep(agents, reserv_table):
     for agent in agents:
         agent.updateCurrentState(reserv_table)
 
+def incrementTimestepWHCA(busy_agents, idle_agents, reserv_table):
+    '''
+     increment timestep
+        update all agent movements
+            timer updated within agent's task
+        unassign tasks if goal is reached and add to report
+
+    :return:
+    '''
+    for agent in idle_agents:
+        agent.updateCurrentState(reserv_table)
+
+    for agent in busy_agents:
+        agent.updateCurrentState(reserv_table)
+        if agent.isAgentIdle():
+            busy_agents.remove(agent)
+            idle_agents.append(agent)
+
+
 def backpath(node):
     '''
     Function to determine the path that lead to the specified search node

@@ -28,7 +28,7 @@ from main import *
 
 
 _DEBUG=False
-_DISPLAY = True
+_DISPLAY = False
 _RECORD = False
 
 def avg_path_distance(paths):
@@ -577,16 +577,16 @@ def test_multi(env,n_agents,n_iterations):
 
 if __name__ == "__main__":
 
-    # env = sys.argv[1]
-    # n_agents = int(sys.argv[2])
-    # n_iterations = int(sys.argv[3])
-
-    # test_multi(env, n_agents, n_iterations)
-
-
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
+    n_iterations = int(sys.argv[3])
 
-    test_single(env, n_agents)
+    test_multi(env, n_agents, n_iterations)
+
+
+    # env = sys.argv[1]
+    # n_agents = int(sys.argv[2])
+
+    # test_single(env, n_agents)
 
 
