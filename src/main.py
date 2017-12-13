@@ -265,7 +265,7 @@ def run_whca(agents, tasks, reserv_table, heuristic):
     """
     pass
 
-def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3, numTasksConcurrently=1):
+def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3, numTasksConcurrently=1, agentList = None, taskList = None):
     """TODO: Docstring for main.
 
     :env: path to environment file
@@ -296,10 +296,16 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
     env = GridMap('env_files/{}'.format(env_name))
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
     if regret == False:
-        agents, tasks = init_agents_tasks(env, reserv_table, n_agents,
-                                          agent_list, task_list, heuristic)
+        if agentList is None or taskList is None:
+            agents, tasks = gen_tasks_agents(env, reserv_table, n_agents, heuristic)
+        else:
+            agents = agentList
+            tasks = taskList
 
-        task_goals = [agent.task.dropoffState for agent in agents]
+        agent_copy = copy.deepcopy(agents)
+        task_copy = copy.deepcopy(tasks)
+
+        #task_goals = [agent.task.dropoffState for agent in agents]
 
         if _DEBUG:
             print("\nAgent Starts and Goals")
@@ -313,7 +319,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         reserv_table.resvAgentInit(agents)
 
         ### ACTION ###
-        run_planner(agents, tasks, env, reserv_table, heuristic, [], None, None)
+        run_planner(agents, tasks, env, reserv_table, heuristic, tasks, frequency, numTasksConcurrently)
 
         if _DEBUG:
             reserv_table.display(env)
@@ -324,9 +330,9 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         path_costs = [agent.planCost for agent in agents]
 
         env.display_map(agent_paths, record=False)
-        path_analysis(agent_paths, task_goals, path_costs)
+        #path_analysis(agent_paths, task_goals, path_costs)
 
-        return agent_paths, task_goals, path_costs
+        return agent_copy, task_copy
 
     else:
         # Create copies of the environment and the reservation table
@@ -370,67 +376,23 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
             for value in agent.taskCompetionTime:
                 taskCompSumRegret += value
 
-        regret = taskCompSumRegret/taskCompSumBaseline
-        print("Regret: ", regret)
+        #regret = taskCompSumRegret/taskCompSumBaseline
 
-        return taskCompSumRegret/n_agents, global_timestep
+        taskCompAvg = taskCompSumRegret / n_agents
+        print("Average Task Completion Time: ", taskCompAvg)
+
+        return taskCompAvg, global_timestep
 
 if __name__ == "__main__":
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
-    regretSum = 0
+    task_completion_sum = 0
     global_time_sum = 0
-    for x in range(0,100):
-        newRegret, global_time = main(env,'hca', heuristic='true', n_agents=n_agents, regret=True, frequency=3, numTasksConcurrently=1)
-        regretSum += newRegret
-        global_time_sum += global_time
-    regretAvg = regretSum/100.0
-    global_time_avg = global_time_sum/100.0
-    print("-------------------------")
-    print("Avg Task Compl Time: ", regretAvg)
-    print("Avg Timesteps to finish: ", global_time_avg)
+    agentList, taskList = main(env,'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=1, agentList=None, taskList=None)
+    agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=2, agentList=agentList, taskList=taskList)
+    agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=4, agentList=agentList, taskList=taskList)
+    agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=8, agentList=agentList, taskList=taskList)
+    agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=12, agentList=agentList, taskList=taskList)
+    agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=24, agentList=agentList, taskList=taskList)
 
-    # Failed test 1
-    # test_agent_ep = [-2, -3]
-    # test_task_ep = [2, -4]
-
-    # main('env_trial.txt', 2, agent_list=test_agent_ep, task_list=test_task_ep)
-
-
-    # Failed Test 2
-    # test_agent_ep = [-3,-2]
-    # test_task_ep = [-4,2]
-
-    # main('env_trial.txt', 2, agent_list=test_agent_ep, task_list=test_task_ep)
-
-    ######################
-    # Env_trial2 Testing
-    ######################
-
-    # Passed
-    # test_agent_ep = [-3,3]
-    # test_task_ep = [2,-4]
-
-
-    # Failed
-    # test_agent_ep = [-1,3,5]
-    # test_task_ep = [4,6,2]
-
-    ######################
-    # Env_warehouse2 Testing
-    ######################
-
-    # test_agent_ep = [-1,-26,23, 49]
-    # test_task_ep = [71, 50,12, -27]
-
-    ######################
-    # Env_warehouse2 Testing
-    ######################
-
-    #test_agent_ep = [-5, -4]
-    #test_task_ep = [-1, -3]
-
-    ########################
-
-    # main('env_small_warehouse.txt','hca', sys.argv[1], len(test_agent_ep), agent_list=test_agent_ep, task_list=test_task_ep)
 
