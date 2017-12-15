@@ -238,6 +238,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
                         artif_task_count += 1
                         # find good endpoint
 
+        print("timestep:{}".format(global_timestep))
         incrementTimestep(agents, reserv_table)
         global_timestep += 1
         agentDoneCount = 0
@@ -356,7 +357,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
 
         ### ACTION ###
         if alg == 'hca':
-            run_hca(agents, tasks, env, reserv_table, heuristic )
+            run_hca(agents, tasks, env, reserv_table, heuristic, [], None )
         if alg == 'whca':
             agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=20 )
 
@@ -425,7 +426,7 @@ if __name__ == "__main__":
     env = sys.argv[1]
     planner = sys.argv[2]
     n_agents = int(sys.argv[3])
-    main(env,planner, heuristic='true', n_agents=n_agents, regret=False, frequency=3)
+    main(env,planner, heuristic='manhattan', n_agents=n_agents, regret=False, frequency=3)
 
     # Failed test 1
     # test_agent_ep = [-2, -3]

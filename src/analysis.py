@@ -329,7 +329,7 @@ def main_analysis_regret(env_name, n_agents):
     env.display_map(agent_paths, record=_RECORD)
     env_copy.display_map(agent_paths_regret, record=_RECORD)
 
-def main_analysis_iter(env_name, n_agents, iterations=5):
+def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
     """TODO: Only works for regret=False right now.
 
     :env: path to environment file
@@ -356,8 +356,9 @@ def main_analysis_iter(env_name, n_agents, iterations=5):
     # Set of agent and task lists to test algorithm performance
     test_set_CA = []
     test_set_HCA =[]
+    test_set_WHCA =[]
 
-    # generate random agent and task list combinations
+    # generate random agent and task list combinations for the 3 algorithms
     for i in range(iterations):
         agents_CA, tasks_CA = init_agents_tasks(env, reserv_table, n_agents,
                                                 agent_list=None, task_list=None,
@@ -365,12 +366,18 @@ def main_analysis_iter(env_name, n_agents, iterations=5):
 
         agent_eps = [env.endpoints.index(agent.currentState[:2]) for agent in agents_CA]
         task_eps =  [env.endpoints.index(task.dropoffState) for task in tasks_CA]
+        agent_eps_copy = copy.deepcopy(agent_eps)
+        task_eps_copy = copy.deepcopy(task_eps)
 
         agents_HCA, tasks_HCA = init_agents_tasks(env, reserv_table, n_agents,
                                                   agent_eps, task_eps, 'true')
 
+        agents_WHCA, tasks_WHCA = init_agents_tasks(env, reserv_table, n_agents,
+                                                  agent_eps_copy, task_eps_copy, 'true')
+
         test_set_CA.append((agents_CA, tasks_CA))
         test_set_HCA.append((agents_HCA, tasks_HCA))
+        test_set_WHCA.append((agents_WHCA, tasks_WHCA))
 
 
     # for i in range(iterations):
@@ -396,14 +403,14 @@ def main_analysis_iter(env_name, n_agents, iterations=5):
 
         task_goals = [agent.task.dropoffState for agent in agents]
 
-        if _DEBUG:
-            print("\nAgent Starts and Goals")
-            print("------------------------\n")
+        print("CA*")
+        print("\nAgent Starts and Goals")
+        print("------------------------\n")
 
-            for j, agent in enumerate(agents):
-                print("Agent {}:".format(j))
-                print("\t Start: {}".format(agent.currentState))
-                print("\t Goal:   {}".format(agent.task.dropoffState))
+        for j, agent in enumerate(agents):
+            print("Agent {}:".format(j))
+            print("\t Start: {}".format(agent.currentState))
+            print("\t Goal:   {}".format(agent.task.dropoffState))
 
         reserv_table.resvAgentInit(agents)
 
@@ -432,9 +439,12 @@ def main_analysis_iter(env_name, n_agents, iterations=5):
         results_CA.append((agent_paths, task_goals, path_costs, failure_count))
 
 
+    ###########################################
+    # Hierarchical Cooperative A* (trueHeur)
+    ###########################################
+
     results_HCA = []
 
-    # Hierarchical Cooperative A* (trueHeur)
     for k in range(iterations):
         reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
 
@@ -443,14 +453,14 @@ def main_analysis_iter(env_name, n_agents, iterations=5):
 
         task_goals = [agent.task.dropoffState for agent in agents]
 
-        if _DEBUG:
-            print("\nAgent Starts and Goals")
-            print("------------------------\n")
+        print("HCA")
+        print("\nAgent Starts and Goals")
+        print("------------------------\n")
 
-            for j, agent in enumerate(agents):
-                print("Agent {}:".format(j))
-                print("\t Start: {}".format(agent.currentState))
-                print("\t Goal:   {}".format(agent.task.dropoffState))
+        for j, agent in enumerate(agents):
+            print("Agent {}:".format(j))
+            print("\t Start: {}".format(agent.currentState))
+            print("\t Goal:   {}".format(agent.task.dropoffState))
 
         reserv_table.resvAgentInit(agents)
 
@@ -477,7 +487,46 @@ def main_analysis_iter(env_name, n_agents, iterations=5):
 
         results_HCA.append((agent_paths, task_goals, path_costs, failure_count))
 
-    return results_CA, results_HCA
+
+    ###########################################
+    # WHCA*
+    ###########################################
+
+    results_HCA = []
+    for k in range(iterations):
+        reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+
+        agents = test_set_HCA[k][0]
+        tasks = test_set_HCA[k][1]
+
+        task_goals = [agent.task.dropoffState for agent in agents]
+
+        reserv_table.resvAgentInit(agents)
+
+        ### ACTION ###
+        agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=window)
+
+        failure_count = 0
+        for agent in agents:
+            if agent.failure:
+                failure_count += 1
+
+        if _DEBUG:
+            reserv_table.display(env)
+            print("Creating Animation...")
+
+        ### ANIMATE RESULTS ###
+        agent_paths = [agent.path for agent in agents]
+        path_costs = [agent.planCost for agent in agents]
+
+        if _DISPLAY:
+            env.display_map(agent_paths, record=_RECORD)
+        if _DEBUG:
+            path_analysis(agent_paths, task_goals, path_costs)
+
+        results_WHCA.append((agent_paths, task_goals, path_costs, failure_count))
+
+    return results_CA, results_HCA, results_WHCA
 
 def test_single(env, n_agents):
     results_CA, results_HCA = main_analysis(env, n_agents)
@@ -498,8 +547,8 @@ def test_single(env, n_agents):
     path_analysis(results_HCA[0], results_HCA[1], results_HCA[2], results_HCA[3])
 
 
-def test_multi(env,n_agents,n_iterations):
-    results_CA, results_HCA = main_analysis_iter(env, n_agents, n_iterations)
+def test_multi(env,n_agents,n_iterations, window):
+    results_CA, results_HCA, results_WHCA = main_analysis_iter(env, n_agents, n_iterations, window)
 
     print('Iteration Test Parameters')
     print('-----------------\n')
@@ -517,8 +566,13 @@ def test_multi(env,n_agents,n_iterations):
     avg_cost_HCA = []
     avg_failures_HCA = 0
 
+    avg_dist_WHCA = []
+    avg_time_WHCA = []
+    avg_cost_WHCA = []
+    avg_failures_WHCA = 0
+
     print("-----------------------")
-    print("Cooperative A* Results:")
+    print("CA* Results:")
     print("-----------------------")
 
     # print("results: {}".format(results_CA))
@@ -548,7 +602,7 @@ def test_multi(env,n_agents,n_iterations):
 
 
     print("\n-----------------------")
-    print("Hierarchical Cooperative A* Results:")
+    print("HCA* Results:")
     print("-----------------------")
     # print("results: {}".format(results_HCA))
     for i,result in enumerate(results_HCA):
@@ -575,13 +629,42 @@ def test_multi(env,n_agents,n_iterations):
     print("Average cost: {}".format(avg_cost_HCA))
     print("Number of failures: {}".format(avg_failures_HCA))
 
+    print("\n-----------------------")
+    print("WHCA* Results:")
+    print("-----------------------")
+    print("Window: {} timesteps\n".format(window))
+    # print("results: {}".format(results_HCA))
+    for i,result in enumerate(results_WHCA):
+        dist, time, cost = path_analysis(result[0], result[1], result[2],result[3])
+        failure = int(bool(result[3]))
+
+        avg_dist_WHCA.append(dist)
+        avg_time_WHCA.append(time)
+        avg_cost_WHCA.append(cost)
+        avg_failures_WHCA += failure
+
+    #     print("\nIteration {} Results:".format(i))
+        # print("total paths: {}".format(result_[0]))
+        # print("goals: {}".format(result_[1]))
+        # print("path_costs: {}".format(result_[2]))
+        # path_analysis(result_[0], result_[1], result_[2])
+
+    avg_dist_WHCA = np.mean(avg_dist_WHCA)
+    avg_time_WHCA = np.mean(avg_time_WHCA)
+    avg_cost_WHCA = np.mean(avg_cost_WHCA)
+
+    print("Average path distance: {}".format( avg_dist_WHCA))
+    print("Average path time: {}".format(avg_time_WHCA))
+    print("Average cost: {}".format(avg_cost_WHCA))
+    print("Number of failures: {}".format(avg_failures_WHCA))
 if __name__ == "__main__":
 
     env = sys.argv[1]
     n_agents = int(sys.argv[2])
     n_iterations = int(sys.argv[3])
+    window = int(sys.argv[4])
 
-    test_multi(env, n_agents, n_iterations)
+    test_multi(env, n_agents, n_iterations, window)
 
 
     # env = sys.argv[1]
