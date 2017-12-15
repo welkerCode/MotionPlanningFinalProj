@@ -163,14 +163,6 @@ def init_agents_tasks_with_regret(env, reserv_table, n_agents, agent_list, task_
     return assignedAgents, assignedTasks            # In the end, return the list of assigned tasks and agents
 
 
-def run_lra(agents, tasks, reserv_table, heuristic):
-    """TODO: Docstring for plan_lra.
-
-    :arg1: TODO
-    :returns: TODO
-
-    """
-    pass
 
 def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequency):
     """TODO: Docstring for plan_hca.
@@ -238,7 +230,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
                         artif_task_count += 1
                         # find good endpoint
 
-        print("timestep:{}".format(global_timestep))
+        # print("timestep:{}".format(global_timestep))
         incrementTimestep(agents, reserv_table)
         global_timestep += 1
         agentDoneCount = 0
@@ -315,6 +307,111 @@ def run_whca(agents, tasks,env, reserv_table, heuristic, window):
 
     return idle_agents
 
+def run_lra(agents, tasks, env, reserv_table, heuristic):
+    """TODO: Docstring for plan_lra.
+
+    :arg1: TODO
+    :returns: TODO
+
+    """
+    global_timestep = 0
+    agentsDone = False
+    agitation = 0
+    failure=False
+
+    while not agentsDone:
+        for agent in agents:
+            if agent.getPlan() is None:
+                if not agent.isAgentIdle():
+                    agent.planPathLRA(reserv_table, global_timestep, heuristic, agitation)
+                    # print(agent.plan)
+
+        next_state = []
+        for agent1 in agents:
+            if agent1.getPlan() is not None:
+                for agent2 in agents:
+                    if agent2.getPlan() is not None:
+                        agent1_x = agent1.currentState[0]
+                        agent1_y = agent1.currentState[1]
+                        agent1_t = agent1.currentState[2]
+                        agent2_x = agent2.currentState[0]
+                        agent2_y = agent2.currentState[1]
+                        agent2_t = agent2.currentState[2]
+                        if agent1.plan[0] == agent2.plan[0] and agent1._id != agent2._id: # Going to same spot
+                            # print('collision')
+                            #agent1.planPathLRA(reserv_table, global_timestep, heuristic)
+                            #agent2.planPathLRA(reserv_table, global_timestep, heuristic)
+                            agent1.plan = None
+                            agent2.plan = None
+                            agitation += 1
+                            # print agitation
+                            break
+                        if agent1.plan[0] == (agent2_x,agent2_y,agent2_t+1) and agent2.plan[0] == (agent1_x,agent1_y,agent1_t+1): # Crossing over
+                            # print('collision 2')
+                            #agent1.planPathLRA(reserv_table, global_timestep, heuristic)
+                            #agent2.planPathLRA(reserv_table, global_timestep, heuristic)
+                            agent1.plan = None
+                            agent2.plan = None
+                            agitation += 1
+                            # print agitation
+                            break
+                        if agent1.plan[0] == (agent2_x,agent2_y,agent2_t+1): # and agent2.plan[0] == (agent2_x,agent2_y,agent2_t+1): # Moving into occupied
+                            # print('collision 3a')
+                            agent1.plan = None
+                            #agent2.plan = None
+                            agitation += 1
+                            # print agitation
+                            break
+                        if agent2.plan[0] == (agent1_x,agent1_y,agent1_t+1): # and agent1.plan[0] == (agent1_x,agent1_y,agent1_t+1): # Moving into occupied
+                            # print('collision 3b')
+                            agent2.plan = None
+                            #agent1.plan = None
+                            agitation += 1
+                            # print agitation
+                            break
+                    else:
+                        agent1_x = agent1.currentState[0]
+                        agent1_y = agent1.currentState[1]
+                        agent1_t = agent1.currentState[2]
+                        agent2_x = agent2.currentState[0]
+                        agent2_y = agent2.currentState[1]
+                        agent2_t = agent2.currentState[2]
+                        if agent1.plan[0] == (agent2_x,agent2_y,agent2_t+1):
+                            # print('collision 4a')
+                            agent1.plan = None
+                            break
+            else:
+                for agent2 in agents:
+                    agent1_x = agent1.currentState[0]
+                    agent1_y = agent1.currentState[1]
+                    agent1_t = agent1.currentState[2]
+                    agent2_x = agent2.currentState[0]
+                    agent2_y = agent2.currentState[1]
+                    agent2_t = agent2.currentState[2]
+                    if agent2.getPlan() is not None:
+                        if agent2.plan[0] == (agent1_x,agent1_y,agent1_t+1):
+                            # print('collision 4b')
+                            agent2.plan = None
+                            break
+        if agitation >= 10 :
+            agitation = 0
+
+        incrementTimestep(agents, reserv_table)
+        global_timestep += 1
+        if global_timestep == 200:
+            failure = True
+            break
+
+        agentDoneCount = 0
+        for agent in agents:
+            if agent.isAgentIdle():
+                agentDoneCount += 1
+        if agentDoneCount == len(agents):
+            agentsDone = True
+            # print('done')
+
+    return failure
+
 def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, regret=False, frequency=3):
     """TODO: Docstring for main.
 
@@ -360,6 +457,8 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
             run_hca(agents, tasks, env, reserv_table, heuristic, [], None )
         if alg == 'whca':
             agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=20 )
+        if alg == 'lra':
+            run_lra(agents, tasks, env, reserv_table, heuristic)
 
         reserv_table.display(env)
         if _DEBUG:

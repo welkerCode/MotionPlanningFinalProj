@@ -12,7 +12,7 @@ Description: Holds the class description for the "Agent" class
 
 from priorityq import *
 from task import *
-from whca import whca_search, hca_search
+from whca import whca_search, hca_search, lra_search
 
 
 _DEBUG = False
@@ -53,6 +53,23 @@ class Agent:
             self.plan, self.planCost = hca_search(self.currentState, self.task,
                                                 self.task.trueHeurDrop,
                                                 reserv_table, currentTime, heuristic)
+        except TypeError:
+            self.plan= None
+            self.planCost = None
+            self.failure = True
+
+
+    def planPathLRA(self, reserv_table, currentTime, heuristic, agitation):
+        """
+        Plans a path for the agent
+        Maybe include a function here to remove old states from the reservation
+        table associated with the old plan
+        """
+
+        try:
+            self.plan, self.planCost = lra_search(self.currentState, self.task,
+                                                self.task.trueHeurDrop, reserv_table,
+                                                currentTime, heuristic, agitation)
         except TypeError:
             self.plan= None
             self.planCost = None
@@ -128,7 +145,43 @@ class Agent:
             self.currentState = self.path[-1][:2] + (self.timestep,)
         if self.plan is not None:
             self.plan = self.plan[1:]
-            print("agent {} task: {}".format(self._id, self.task))
+            if len(self.plan) == 0:
+                reserv_table.resvState(self.currentState)
+                if _DEBUG:
+                    print("Agent {} task:".format(self._id, self.task))
+                if not self.isAgentIdle():
+                    # If it is not an artificial task, get the timer value
+                    self.task.tickTimer()
+                    if str(self.task.taskId)[0] != 'a':
+                        self.taskCompetionTime.append(self.task.getTimer())
+                    self.task.progressStatus()
+                    self.assignTask(None)
+                    self.plan = None
+            self.path.append(self.currentState)  # Append the step to the path
+
+        # If the Agent is not idle, update the timer associated with the task
+        if not self.isAgentIdle():
+            self.task.tickTimer()
+
+    def updateCurrentStateWHCA(self, reserv_table):
+        """
+        Moves the agent to the next state in plan and adds this state to the path
+        """
+        self.timestep += 1
+        if _DEBUG:
+            print("Agent {} current plan: {}".format(self._id, self.plan))
+        try:
+            if self.plan is not None:
+                self.currentState = self.plan[0]
+            else:
+                self.currentState = (self.currentState[0], self.currentState[1], self.currentState[2]+1)
+                reserv_table.resvState(self.currentState)
+                self.path.append(self.currentState)
+
+        except IndexError:
+            self.currentState = self.path[-1][:2] + (self.timestep,)
+        if self.plan is not None:
+            self.plan = self.plan[1:]
             if (self.currentState[0], self.currentState[1]) == self.task.dropoffState:
                 reserv_table.resvState(self.currentState)
                 if _DEBUG:

@@ -114,8 +114,27 @@ def path_analysis(total_paths, goals, path_costs, failure_count):
     path_states = [[l[:2] for l in path] for path in total_paths]
 
     # find paths to goals from total_paths
-    goal_indices = [path.index(goals[i]) for i, path in enumerate(path_states)]
-    paths_to_goals = [path[:goal_indices[i]+1] for i, path in enumerate(total_paths)]
+    try:
+        goal_indices = [path.index(goals[i]) for i, path in enumerate(path_states)]
+        paths_to_goals = [path[:goal_indices[i]+1] for i, path in enumerate(total_paths)]
+
+        avg_dist = avg_path_distance(paths_to_goals)
+        avg_time = avg_path_time(paths_to_goals)
+        avg_cost = avg_path_cost(path_costs)
+
+        if _DISPLAY:
+            print('Analyzing paths...')
+            print('---------------------')
+            print('Average Path Distance: {}'.format(avg_dist))
+            print('Average Path Time: {} timesteps'.format(avg_time))
+            print('Average Path Cost: {}'.format(avg_cost))
+            print('Failure: {}\n'.format(bool(failure_count)))
+
+        return [avg_dist, avg_time, avg_cost]
+
+    except ValueError:
+        failure_count=1
+        return [failure_count]
 
     # goal_indices = []
     # paths_to_goals= []
@@ -130,19 +149,7 @@ def path_analysis(total_paths, goals, path_costs, failure_count):
 
     # paths_to_goals = [path[:goal_indices[i]+1] for i, path in enumerate(total_paths)]
 
-    avg_dist = avg_path_distance(paths_to_goals)
-    avg_time = avg_path_time(paths_to_goals)
-    avg_cost = avg_path_cost(path_costs)
 
-    if _DISPLAY:
-        print('Analyzing paths...')
-        print('---------------------')
-        print('Average Path Distance: {}'.format(avg_dist))
-        print('Average Path Time: {} timesteps'.format(avg_time))
-        print('Average Path Cost: {}'.format(avg_cost))
-        print('Failure: {}\n'.format(bool(failure_count)))
-
-    return avg_dist, avg_time, avg_cost
 
 def main_analysis(env_name, n_agents):
 
@@ -354,6 +361,7 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
 
     # Set of agent and task lists to test algorithm performance
+    test_set_LRA = []
     test_set_CA = []
     test_set_HCA =[]
     test_set_WHCA =[]
@@ -368,6 +376,8 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
         task_eps =  [env.endpoints.index(task.dropoffState) for task in tasks_CA]
         agent_eps_copy = copy.deepcopy(agent_eps)
         task_eps_copy = copy.deepcopy(task_eps)
+        agent_eps_copy2 = copy.deepcopy(agent_eps)
+        task_eps_copy2= copy.deepcopy(task_eps)
 
         agents_HCA, tasks_HCA = init_agents_tasks(env, reserv_table, n_agents,
                                                   agent_eps, task_eps, 'true')
@@ -375,6 +385,10 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
         agents_WHCA, tasks_WHCA = init_agents_tasks(env, reserv_table, n_agents,
                                                   agent_eps_copy, task_eps_copy, 'true')
 
+        agents_LRA, tasks_LRA = init_agents_tasks(env, reserv_table, n_agents,
+                                                  agent_eps_copy2, task_eps_copy2, 'manhattan')
+
+        test_set_LRA.append((agents_LRA, tasks_LRA))
         test_set_CA.append((agents_CA, tasks_CA))
         test_set_HCA.append((agents_HCA, tasks_HCA))
         test_set_WHCA.append((agents_WHCA, tasks_WHCA))
@@ -391,6 +405,55 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
     #     print("HCA agent {} inits: {}".format(i, [test_set_HCA[i][0][j].currentState for j in range(n_agents)]))
     #     print("HCA task {} dropoffs: {}".format(i, [test_set_HCA[i][1][j].dropoffState for j in range(n_agents)]))
 
+    results_LRA = []
+
+    # Cooperative A* (Manhattan Heur)
+    # print("LRA")
+    for i in range(iterations):
+        reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+
+        agents = test_set_LRA[i][0]
+        tasks = test_set_LRA[i][1]
+
+        task_goals = [agent.task.dropoffState for agent in agents]
+
+        # print("CA*")
+        # print("\nAgent Starts and Goals")
+        # print("------------------------\n")
+
+        # for j, agent in enumerate(agents):
+        #     print("Agent {}:".format(j))
+        #     print("\t Start: {}".format(agent.currentState))
+        #     print("\t Goal:   {}".format(agent.task.dropoffState))
+
+        reserv_table.resvAgentInit(agents)
+
+        ### ACTION ###
+        failure = run_lra(agents, tasks, env, reserv_table, 'manhattan')
+
+        # for j, agent in enumerate(agents):
+        #     print("Agent {}:".format(j))
+        #     print("\t Path: {}".format(agent.path))
+
+        failure_count = 0
+        if failure:
+            failure_count+=1
+
+        if _DEBUG:
+            reserv_table.display(env)
+            print("Creating Animation...")
+
+        ### ANIMATE RESULTS ###
+        agent_paths = [agent.path for agent in agents]
+        path_costs = [agent.planCost for agent in agents]
+
+        if _DISPLAY:
+            env.display_map(agent_paths, record=_RECORD)
+        if _DEBUG:
+            path_analysis(agent_paths, task_goals, path_costs)
+
+        results_LRA.append((agent_paths, task_goals, path_costs, failure_count))
+
     # Lists to hold the paths, goals, and costs for the different algorithms
     results_CA = []
 
@@ -403,14 +466,14 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
 
         task_goals = [agent.task.dropoffState for agent in agents]
 
-        print("CA*")
-        print("\nAgent Starts and Goals")
-        print("------------------------\n")
+        # print("CA*")
+        # print("\nAgent Starts and Goals")
+        # print("------------------------\n")
 
-        for j, agent in enumerate(agents):
-            print("Agent {}:".format(j))
-            print("\t Start: {}".format(agent.currentState))
-            print("\t Goal:   {}".format(agent.task.dropoffState))
+        # for j, agent in enumerate(agents):
+        #     print("Agent {}:".format(j))
+        #     print("\t Start: {}".format(agent.currentState))
+        #     print("\t Goal:   {}".format(agent.task.dropoffState))
 
         reserv_table.resvAgentInit(agents)
 
@@ -421,7 +484,6 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
         for agent in agents:
             if agent.failure:
                 failure_count += 1
-
 
         if _DEBUG:
             reserv_table.display(env)
@@ -438,7 +500,6 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
 
         results_CA.append((agent_paths, task_goals, path_costs, failure_count))
 
-
     ###########################################
     # Hierarchical Cooperative A* (trueHeur)
     ###########################################
@@ -453,14 +514,14 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
 
         task_goals = [agent.task.dropoffState for agent in agents]
 
-        print("HCA")
-        print("\nAgent Starts and Goals")
-        print("------------------------\n")
+        # print("HCA")
+        # print("\nAgent Starts and Goals")
+        # print("------------------------\n")
 
-        for j, agent in enumerate(agents):
-            print("Agent {}:".format(j))
-            print("\t Start: {}".format(agent.currentState))
-            print("\t Goal:   {}".format(agent.task.dropoffState))
+        # for j, agent in enumerate(agents):
+        #     print("Agent {}:".format(j))
+        #     print("\t Start: {}".format(agent.currentState))
+        #     print("\t Goal:   {}".format(agent.task.dropoffState))
 
         reserv_table.resvAgentInit(agents)
 
@@ -492,41 +553,42 @@ def main_analysis_iter(env_name, n_agents, iterations=5, window=10):
     # WHCA*
     ###########################################
 
-    results_HCA = []
-    for k in range(iterations):
-        reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
+    # results_WHCA = []
+    # for k in range(iterations):
+    #     reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
 
-        agents = test_set_HCA[k][0]
-        tasks = test_set_HCA[k][1]
+    #     agents = test_set_HCA[k][0]
+    #     tasks = test_set_HCA[k][1]
 
-        task_goals = [agent.task.dropoffState for agent in agents]
+    #     task_goals = [agent.task.dropoffState for agent in agents]
 
-        reserv_table.resvAgentInit(agents)
+    #     reserv_table.resvAgentInit(agents)
 
-        ### ACTION ###
-        agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=window)
+    #     ### ACTION ###
+    #     agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=window)
 
-        failure_count = 0
-        for agent in agents:
-            if agent.failure:
-                failure_count += 1
+    #     failure_count = 0
+    #     for agent in agents:
+    #         if agent.failure:
+    #             failure_count += 1
 
-        if _DEBUG:
-            reserv_table.display(env)
-            print("Creating Animation...")
+    #     if _DEBUG:
+    #         reserv_table.display(env)
+    #         print("Creating Animation...")
 
-        ### ANIMATE RESULTS ###
-        agent_paths = [agent.path for agent in agents]
-        path_costs = [agent.planCost for agent in agents]
+    #     ### ANIMATE RESULTS ###
+    #     agent_paths = [agent.path for agent in agents]
+    #     path_costs = [agent.planCost for agent in agents]
 
-        if _DISPLAY:
-            env.display_map(agent_paths, record=_RECORD)
-        if _DEBUG:
-            path_analysis(agent_paths, task_goals, path_costs)
+    #     if _DISPLAY:
+    #         env.display_map(agent_paths, record=_RECORD)
+    #     if _DEBUG:
+    #         path_analysis(agent_paths, task_goals, path_costs)
 
-        results_WHCA.append((agent_paths, task_goals, path_costs, failure_count))
+    #     results_WHCA.append((agent_paths, task_goals, path_costs, failure_count))
 
-    return results_CA, results_HCA, results_WHCA
+    # return results_CA, results_HCA, results_WHCA, results_LRA
+    return results_CA, results_HCA, results_LRA
 
 def test_single(env, n_agents):
     results_CA, results_HCA = main_analysis(env, n_agents)
@@ -548,13 +610,19 @@ def test_single(env, n_agents):
 
 
 def test_multi(env,n_agents,n_iterations, window):
-    results_CA, results_HCA, results_WHCA = main_analysis_iter(env, n_agents, n_iterations, window)
+    # results_CA, results_HCA, results_WHCA, results_LRA = main_analysis_iter(env, n_agents, n_iterations, window)
+    results_CA, results_HCA, results_LRA = main_analysis_iter(env, n_agents, n_iterations, window)
 
     print('Iteration Test Parameters')
     print('-----------------\n')
     print("Environment: {}".format(env))
     print("Number of agents: {}".format(n_agents))
     print("Number of trial iterations: {}\n".format(n_iterations))
+
+    avg_dist_LRA = []
+    avg_time_LRA = []
+    avg_cost_LRA = []
+    avg_failures_LRA = 0
 
     avg_dist_CA = []
     avg_time_CA = []
@@ -572,12 +640,48 @@ def test_multi(env,n_agents,n_iterations, window):
     avg_failures_WHCA = 0
 
     print("-----------------------")
+    print("LRA* Results:")
+    print("-----------------------")
+    for i,result in enumerate(results_LRA):
+        results = path_analysis(result[0], result[1], result[2],result[3])
+        if len(results) == 1:
+            failure = results[0]
+        else:
+            dist = results[0]
+            time = results[1]
+            cost = results[2]
+            failure = int(bool(result[3]))
+            avg_dist_LRA.append(dist)
+            avg_time_LRA.append(time)
+            avg_cost_LRA.append(cost)
+
+        avg_failures_LRA += failure
+
+    #     print("\nIteration {} Results:".format(i))
+        # print("total paths: {}".format(result[0]))
+        # print("goals: {}".format(result[1]))
+        # print("path_costs: {}".format(result[2]))
+        # path_analysis(result[0], result[1], result[2])
+
+    avg_dist_LRA = np.mean(avg_dist_LRA)
+    avg_time_LRA = np.mean(avg_time_LRA)
+    avg_cost_LRA = np.mean(avg_cost_LRA)
+
+    print("Average path distance: {}".format( avg_dist_LRA))
+    print("Average path time: {}".format(avg_time_LRA))
+    print("Average cost: {}".format(avg_cost_LRA))
+    print("Number of failures: {}".format(avg_failures_LRA))
+
+    print("-----------------------")
     print("CA* Results:")
     print("-----------------------")
 
     # print("results: {}".format(results_CA))
     for i,result in enumerate(results_CA):
-        dist, time, cost = path_analysis(result[0], result[1], result[2],result[3])
+        results = path_analysis(result[0], result[1], result[2],result[3])
+        dist = results[0]
+        time = results[1]
+        cost = results[2]
         failure = int(bool(result[3]))
 
         avg_dist_CA.append(dist)
@@ -606,7 +710,10 @@ def test_multi(env,n_agents,n_iterations, window):
     print("-----------------------")
     # print("results: {}".format(results_HCA))
     for i,result in enumerate(results_HCA):
-        dist, time, cost = path_analysis(result[0], result[1], result[2],result[3])
+        results = path_analysis(result[0], result[1], result[2],result[3])
+        dist = results[0]
+        time = results[1]
+        cost = results[2]
         failure = int(bool(result[3]))
 
         avg_dist_HCA.append(dist)
@@ -629,34 +736,35 @@ def test_multi(env,n_agents,n_iterations, window):
     print("Average cost: {}".format(avg_cost_HCA))
     print("Number of failures: {}".format(avg_failures_HCA))
 
-    print("\n-----------------------")
-    print("WHCA* Results:")
-    print("-----------------------")
-    print("Window: {} timesteps\n".format(window))
-    # print("results: {}".format(results_HCA))
-    for i,result in enumerate(results_WHCA):
-        dist, time, cost = path_analysis(result[0], result[1], result[2],result[3])
-        failure = int(bool(result[3]))
+    # print("\n-----------------------")
+    # print("WHCA* Results:")
+    # print("-----------------------")
+    # print("Window: {} timesteps\n".format(window))
+    # # print("results: {}".format(results_HCA))
+    # for i,result in enumerate(results_WHCA):
+    #     dist, time, cost = path_analysis(result[0], result[1], result[2],result[3])
+    #     failure = int(bool(result[3]))
 
-        avg_dist_WHCA.append(dist)
-        avg_time_WHCA.append(time)
-        avg_cost_WHCA.append(cost)
-        avg_failures_WHCA += failure
+    #     avg_dist_WHCA.append(dist)
+    #     avg_time_WHCA.append(time)
+    #     avg_cost_WHCA.append(cost)
+    #     avg_failures_WHCA += failure
 
-    #     print("\nIteration {} Results:".format(i))
-        # print("total paths: {}".format(result_[0]))
-        # print("goals: {}".format(result_[1]))
-        # print("path_costs: {}".format(result_[2]))
-        # path_analysis(result_[0], result_[1], result_[2])
+    # #     print("\nIteration {} Results:".format(i))
+    #     # print("total paths: {}".format(result_[0]))
+    #     # print("goals: {}".format(result_[1]))
+    #     # print("path_costs: {}".format(result_[2]))
+    #     # path_analysis(result_[0], result_[1], result_[2])
 
-    avg_dist_WHCA = np.mean(avg_dist_WHCA)
-    avg_time_WHCA = np.mean(avg_time_WHCA)
-    avg_cost_WHCA = np.mean(avg_cost_WHCA)
+    # avg_dist_WHCA = np.mean(avg_dist_WHCA)
+    # avg_time_WHCA = np.mean(avg_time_WHCA)
+    # avg_cost_WHCA = np.mean(avg_cost_WHCA)
 
-    print("Average path distance: {}".format( avg_dist_WHCA))
-    print("Average path time: {}".format(avg_time_WHCA))
-    print("Average cost: {}".format(avg_cost_WHCA))
-    print("Number of failures: {}".format(avg_failures_WHCA))
+    # print("Average path distance: {}".format( avg_dist_WHCA))
+    # print("Average path time: {}".format(avg_time_WHCA))
+    # print("Average cost: {}".format(avg_cost_WHCA))
+    # print("Number of failures: {}".format(avg_failures_WHCA))
+
 if __name__ == "__main__":
 
     env = sys.argv[1]

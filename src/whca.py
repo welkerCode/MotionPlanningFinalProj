@@ -15,6 +15,8 @@ from priorityq import PriorityQ
 from global_utility import backpath
 from global_utility import manhattan_heuristic
 
+import numpy as np
+
 _ACTIONS = ['u','d','l','r','pause']
 _ACTIONS_2 = ['u','d','l','r','ne','nw','sw','se','pause']
 # _ACTION_1_COST =  {'u':1,'d':1,'l':1,'r':1,'pause':0.5}
@@ -25,6 +27,42 @@ _ROW = 0
 _DEBUG = False
 _DEBUG_END = False
 
+def lra_search(currentState, task, trueHeur, reserv_table, currentTime, heuristic, agitation):
+    f = reserv_table.transition3D
+    actions = _ACTIONS
+    dropoffState = task.getDropoff()
+    cost = 0
+    n0 = SearchNode(currentState, actions, cost = cost)
+    frontier = PriorityQ()
+    frontier.push(n0,cost)
+    visited = {}
+
+    while len(frontier) > 0:
+        n_i = frontier.pop()
+        if n_i.state in visited:
+            if visited[n_i.state] < n_i.cost:
+                continue
+        if n_i.state[_ROW] == dropoffState[_ROW] and n_i.state[_COL] == dropoffState[_COL]:
+            path = backpath(n_i)
+            return path, n_i.cost
+        visited[n_i.state] = n_i.cost
+        for a in n_i.actions:
+            s_prime, cost = f(n_i.state, a)
+            if not reserv_table.checkStateResv(s_prime[:2], s_prime[2]):
+                cost_spent = n_i.cost + cost  # g(s_prime)
+                n_prime = SearchNode(s_prime, actions, n_i, a, cost=cost_spent)
+                if heuristic == 'true':
+                    h = trueHeur.get(s_prime[:2])
+                elif heuristic == 'manhattan':
+                    h = manhattan_heuristic(s_prime[:2], dropoffState)
+                # Add the heuristic for the combined cost-spent and cost-to-go
+                new_cost = cost_spent + h + (agitation * np.random.uniform(0,1))  # f(s_prime)
+                if ((s_prime in visited and visited[s_prime] > cost_spent) or
+                        (s_prime not in visited and s_prime not in frontier)):
+                    frontier.push(n_prime, new_cost)
+                elif s_prime in frontier and new_cost < frontier.get_cost(n_prime):
+                    frontier.replace(n_prime, new_cost)
+    return None
 
 def hca_search(currentState, task, trueHeur, reserv_table, currentTime, heuristic):
     '''

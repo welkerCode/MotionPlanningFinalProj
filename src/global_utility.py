@@ -50,10 +50,10 @@ def incrementTimestepWHCA(busy_agents, idle_agents, reserv_table):
     :return:
     '''
     for agent in idle_agents:
-        agent.updateCurrentState(reserv_table)
+        agent.updateCurrentStateWHCA(reserv_table)
 
     for agent in busy_agents:
-        agent.updateCurrentState(reserv_table)
+        agent.updateCurrentStateWHCA(reserv_table)
         if agent.isAgentIdle():
             busy_agents.remove(agent)
             idle_agents.append(agent)
