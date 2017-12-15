@@ -269,15 +269,15 @@ def run_whca(agents, tasks,env, reserv_table, heuristic, window):
 
     while len(busy_agents) > 0:
         if global_timestep % k == 0:
-            # if global_timestep != 0:
-            #     for agent in busy_agents:
-            #         print(agent.plan)
-            #         reserv_table.clearPlan(agent.plan)
+            #if global_timestep != 0:
+            #    for agent in busy_agents:
+            #        print(agent.plan)
+            #        reserv_table.clearPlan(agent.plan)
 
             # reserv_table = Reserv_Table(env.occupancy_grid, env.rows, env.cols)
             # reserv_table.resvAgentInitWHCA(busy_agents, global_timestep)
             # reserv_table.resvAgentInitWHCA(idle_agents, global_timestep)
-            # random.shuffle(busy_agents)
+            random.shuffle(busy_agents)
             for agent in busy_agents:
                 agent.planPathWHCA(reserv_table, global_timestep, heuristic )
                 if len(agent.plan) >= window:
@@ -288,12 +288,12 @@ def run_whca(agents, tasks,env, reserv_table, heuristic, window):
 
         for agent in idle_agents:
             # local repair for idle agents
-            if agent.isAgentIdle:
-                next_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 1)
+            if agent.isAgentIdle():
+                #next_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 1)
                 second_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 2)
                 third_state = reserv_table.checkStateResv(agent.currentState[:2], agent.currentState[2] + 3)
-                if next_state == True or second_state == True or third_state == True:
-
+                #if next_state == True or second_state == True or third_state == True:
+                if second_state == True or third_state == True:
                     # create task with different ID
                     # plan from currentState to task
 
@@ -307,7 +307,7 @@ def run_whca(agents, tasks,env, reserv_table, heuristic, window):
                                                 env.endpoints, tasks, agents)
                     relocateTask = Task('a{}'.format(artif_task_count), None, dest_end, "dropoff", reserv_table)
                     agent.assignTask(relocateTask)
-                    agent.planPath(reserv_table, global_timestep, heuristic)
+                    agent.planPathWHCA(reserv_table, global_timestep, heuristic)
                     artif_task_count += 1
 
         global_timestep += 1
@@ -358,7 +358,7 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         if alg == 'hca':
             run_hca(agents, tasks, env, reserv_table, heuristic )
         if alg == 'whca':
-            agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=10 )
+            agents = run_whca(agents, tasks, env, reserv_table, heuristic, window=20 )
 
         reserv_table.display(env)
         if _DEBUG:

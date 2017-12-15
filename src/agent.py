@@ -128,7 +128,7 @@ class Agent:
             self.currentState = self.path[-1][:2] + (self.timestep,)
         if self.plan is not None:
             self.plan = self.plan[1:]
-            if len(self.plan) == 0:
+            if (self.currentState[0], self.currentState[1]) == self.task.dropoffState:
                 reserv_table.resvState(self.currentState)
                 if _DEBUG:
                     print("Agent {} task:".format(self._id, self.task))
