@@ -35,6 +35,7 @@ class Agent:
         self.task = newTask # This holds the task assigned to the agent.  If none, then the agent is 'idle'
         self.timestep = 0
         self.taskCompetionTime = [] # This holds the final timer value kept within the task when the task has been completed.  Used for regret analysis
+        self.failure = False
 
         # In order to pause our reverse search for true heuristic, we need these two member variables
         self.revFrontier = PriorityQ()  # This is used to hold the frontier of the reverse search
@@ -53,9 +54,10 @@ class Agent:
                                                 self.task.trueHeurDrop,
                                                 reserv_table, currentTime, heuristic)
         except TypeError:
-            self.plan = None
+            self.plan= None
             self.planCost = None
-            print('Path Planning failed for agent {}!'.format(self._id))
+            self.failure = True
+            # print('Path Planning failed for agent {}!'.format(self._id))
 
 
         # Maybe include another function to claim new states in the reservation table corresponding with the new plan
@@ -105,6 +107,10 @@ class Agent:
                 self.currentState = (self.currentState[0], self.currentState[1], self.currentState[2]+1)
                 reserv_table.resvState(self.currentState)
                 self.path.append(self.currentState)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1d53b3142fc6dccfefc9660bc1284819f5b4dda5
         except IndexError:
             self.currentState = self.path[-1][:2] + (self.timestep,)
         if self.plan is not None:

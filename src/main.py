@@ -30,6 +30,7 @@ import sys
 import copy
 
 _DEBUG = False
+_DISPLAY = True # display animation
 
 def init_agents_tasks(env, reserv_table, n_agents, agent_list, task_list, heuristic):
     """TODO: Initialieses a list of agent and tasks and assigns tasks to agents
@@ -187,6 +188,7 @@ def run_hca(agents, tasks,env, reserv_table, heuristic, unassignedTasks, frequen
     global_timestep = 0
     artif_task_count = 0
     agentsDone = False
+    agentFailureCount = 0
 
     ### ACTION ###
     while not agentsDone or len(unassignedTasks) > 0:
@@ -329,8 +331,14 @@ def main(env_name,alg, heuristic, n_agents, agent_list=None, task_list=None, reg
         agent_paths = [agent.path for agent in agents]
         path_costs = [agent.planCost for agent in agents]
 
+<<<<<<< HEAD
         env.display_map(agent_paths, record=False)
         #path_analysis(agent_paths, task_goals, path_costs)
+=======
+        if _DISPLAY:
+            env.display_map(agent_paths, record=False)
+        path_analysis(agent_paths, task_goals, path_costs)
+>>>>>>> 1d53b3142fc6dccfefc9660bc1284819f5b4dda5
 
         return agent_copy, task_copy
 
@@ -395,4 +403,15 @@ if __name__ == "__main__":
     agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=12, agentList=agentList, taskList=taskList)
     agentList, taskList = main(env, 'hca', heuristic='true', n_agents=n_agents, regret=False, frequency=3, numTasksConcurrently=24, agentList=agentList, taskList=taskList)
 
+<<<<<<< HEAD
+=======
+    # print('true heur')
 
+    # main('env_warehouse2.txt','hca','true', len(test_agent_ep),
+    #      agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
+
+    # print('manhattan')
+>>>>>>> 1d53b3142fc6dccfefc9660bc1284819f5b4dda5
+
+    # main('env_warehouse2.txt','hca','manhattan', len(test_agent_ep),
+    #      agent_list=test_agent_ep, task_list=test_task_ep, regret=False)
